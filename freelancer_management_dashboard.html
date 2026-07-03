@@ -1,0 +1,2510 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>نظام إدارة العمل الحر والمشاريع | Freelancer Management System</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Cairo (Arabic) & Inter (English) -->
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        customPrimary: 'var(--primary)',
+                        customPrimaryHover: 'var(--primary-hover)',
+                        customPrimaryLight: 'var(--primary-light)',
+                        customBg: 'var(--bg-main)',
+                        customCard: 'var(--bg-card)',
+                        customText: 'var(--text-main)',
+                        customMuted: 'var(--text-muted)',
+                        customBorder: 'var(--border-color)',
+                        customHeader: 'var(--bg-header)',
+                    },
+                    fontFamily: {
+                        sans: ['Cairo', 'Inter', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <style>
+        body {
+            font-family: 'Cairo', 'Inter', sans-serif;
+            transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+            background-color: var(--bg-main);
+            color: var(--text-main);
+        }
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: var(--bg-main);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: var(--border-color);
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--primary);
+        }
+        .theme-transition {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+    </style>
+</head>
+<body class="h-full text-slate-800 antialiased overflow-hidden">
+    <div id="root" class="h-full flex flex-col"></div>
+
+    <!-- React and ReactDOM CDNs -->
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+    <!-- Babel CDN for JSX -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    <script type="text/babel">
+        const { useState, useMemo, useEffect } = React;
+
+        const translations = {
+            ar: {
+                appName: "الوكيل المستقل",
+                subTitle: "إدارة المشاريع والمالية",
+                dashboard: "لوحة التحكم",
+                clients: "إدارة العملاء",
+                projects: "إدارة المشاريع",
+                cashboxes: "الصناديق المالية",
+                transactions: "حركات الأموال",
+                reports: "التقارير",
+                users: "المستخدمين",
+                settings: "الإعدادات",
+                
+                // Theme Customizer Translations
+                darkMode: "الوضع الداكن",
+                lightMode: "الوضع المضيء",
+                themeSelection: "مظهر وألوان النظام",
+                layoutSelection: "تنسيق وهيكل الواجهة",
+                layoutSidebar: "مخطط جانبي كلاسيكي",
+                layoutTopbar: "مخطط علوي عريض",
+                layoutCompact: "مخطط مدمج ذكي",
+
+                // KPIs
+                totalCollected: "إجمالي المقبوضات",
+                totalWithdrawn: "إجمالي المسحوبات",
+                netTotal: "الرصيد الصافي",
+                topClient: "أفضل عميل قيمةً",
+                totalProjects: "إجمالي المشاريع",
+                completedProjects: "المكتملة",
+                inProgressProjects: "جاري تنفيذها",
+                delayedProjects: "المؤجلة / الملغية",
+                
+                // Dashboard UI
+                periodFilter: "تصفية الفترة",
+                currentMonth: "الشهر الحالي",
+                allTime: "كل الأوقات",
+                customRange: "فترة مخصصة",
+                incomeTrend: "مؤشر حركة المقبوضات والتدفق النقدي",
+                outstandingBalances: "أرصدة معلقة غير مدفوعة للعملاء",
+                unpaidAmount: "مستحقات غير مدفوعة",
+                addPayment: "تسجيل دفعة",
+                egp: "ج.م",
+                client: "العميل",
+                project: "المشروع",
+                remaining: "المتبقي",
+                paid: "المدفوع",
+                cost: "التكلفة الكلية",
+                status: "الحالة",
+                details: "التفاصيل",
+                actions: "الإجراءات",
+                noOutstanding: "لا توجد مستحقات معلقة حالياً. عمل متميز!",
+
+                // Common Actions
+                search: "بحث...",
+                filter: "تصفية",
+                add: "إضافة جديد",
+                edit: "تعديل",
+                delete: "حذف",
+                bulkDelete: "حذف المحدد",
+                save: "حفظ التغييرات",
+                cancel: "إلغاء",
+                exportPdf: "تصدير تقرير PDF مطبوع",
+                createdDate: "تاريخ الإنشاء",
+                all: "الكل",
+
+                // Clients Form & Table
+                clientId: "كود العميل",
+                clientName: "اسم العميل",
+                mobile1: "رقم المحمول 1",
+                mobile2: "رقم المحمول 2",
+                email: "البريد الإلكتروني",
+                address: "العنوان بالكامل",
+                projectsCount: "عدد المشاريع",
+                clientDetail: "بطاقة تفاصيل العميل والنشاط المالي",
+
+                // Projects Form & Table
+                projectId: "كود المشروع",
+                projectName: "اسم المشروع",
+                category: "تصنيف العمل",
+                selectClient: "اختر العميل",
+                financialSummary: "الملخص المالي للمشروع",
+                statusCompleted: "تم الاكتمال",
+                statusInProgress: "جاري العمل",
+                statusDelayed: "مؤجل",
+                statusCancelled: "ملغي",
+
+                // Cashboxes
+                cashboxId: "كود الصندوق",
+                paymentMethod: "قناة الدفع",
+                currentBalance: "الرصيد الحالي",
+
+                // Transactions
+                movementNo: "رقم الحركة",
+                transactionType: "نوع الحركة",
+                deposit: "إيداع (+)",
+                withdraw: "سحب (-)",
+                transfer: "تحويل مالي (من/إلى)",
+                amount: "المبلغ",
+                impact: "الأثر المالي",
+                notes: "ملاحظات الحركة",
+                cashbox: "الصندوق المالي",
+                fromCashbox: "من صندوق",
+                toCashbox: "إلى صندوق",
+                optional: "اختياري",
+                validationSameBox: "خطأ: لا يمكن التحويل لنفس الصندوق المالي!",
+                validationNegative: "خطأ: القيمة يجب أن تكون أكبر من صفر!",
+
+                // Reports
+                clientReport: "تقارير العملاء المخصصة",
+                projectReport: "تقارير المشاريع والإنتاجية",
+                directTransactions: "الحركات المالية المباشرة مع العميل",
+                projectsSummary: "ملخص المشاريع المتعاقد عليها",
+                netDirect: "صافي التعامل المالي المباشر",
+                fromDate: "من تاريخ",
+                toDate: "إلى تاريخ",
+
+                // Users
+                userId: "كود المستخدم",
+                role: "الدور والصلاحية",
+                password: "كلمة المرور",
+                roles: {
+                    gm: "مدير عام",
+                    manager: "مدير مشاريع",
+                    employee: "موظف مالي"
+                },
+
+                // Settings
+                companyName: "اسم الشركة / المستقل",
+                companyLogo: "شعار الشركة (PNG مربع)",
+                footerText: "نص التذييل للتقارير (بحد أقصى 100 حرف)",
+                language: "لغة النظام الافتراضية",
+                themePreset: "نمط الألوان الافتراضي للواجهة",
+                customColor: "لون مخصص مميز",
+                oceanBlue: "أزرق المحيط",
+                forestGreen: "أخضر الغابة",
+                sunsetOrange: "برتقالي الغروب",
+                royalIndigo: "الملكي الإنديغو",
+                crimsonRose: "الوردي القرمزي",
+                midnightGold: "الذهبي الملكي",
+                customTheme: "تخصيص لون مستقل",
+
+                // Notifications / Alerts
+                saveSuccess: "تم حفظ البيانات وتحديث الثيم بنجاح في النظام!",
+                deleteSuccess: "تم الحذف بنجاح!",
+                invalidForm: "يرجى التحقق من صحة كافة الحقول المطلوبة وقواعد الإدخال.",
+                generatingPdf: "جاري إعداد وتوليد التقرير المالي عالي الجودة PDF...",
+                exportFinished: "تم تحميل التقرير المالي بنجاح بصيغة PDF."
+            },
+            en: {
+                appName: "Freelance Agent",
+                subTitle: "Projects & Finance Master",
+                dashboard: "Dashboard",
+                clients: "Clients",
+                projects: "Projects",
+                cashboxes: "Cashboxes",
+                transactions: "Transactions",
+                reports: "Reports",
+                users: "Users",
+                settings: "Settings",
+
+                darkMode: "Dark Mode",
+                lightMode: "Light Mode",
+                themeSelection: "App Colors & Accent",
+                layoutSelection: "Workspace Layout Structure",
+                layoutSidebar: "Classic Sidebar Layout",
+                layoutTopbar: "Wide Topbar Layout",
+                layoutCompact: "Smart Compact Cockpit",
+
+                totalCollected: "Total Collected",
+                totalWithdrawn: "Total Withdrawn",
+                netTotal: "Net Total Balance",
+                topClient: "Top Valuable Client",
+                totalProjects: "Total Projects",
+                completedProjects: "Completed",
+                inProgressProjects: "In Progress",
+                delayedProjects: "Delayed / Cancelled",
+
+                periodFilter: "Period Filter",
+                currentMonth: "Current Month",
+                allTime: "All Time",
+                customRange: "Custom Range",
+                incomeTrend: "Income & Cashflow Trend Tracker",
+                outstandingBalances: "Outstanding Unpaid Client Balances",
+                unpaidAmount: "Unpaid Balance",
+                addPayment: "Record Deposit",
+                egp: "EGP",
+                client: "Client",
+                project: "Project",
+                remaining: "Remaining",
+                paid: "Paid",
+                cost: "Total Cost",
+                status: "Status",
+                details: "Details",
+                actions: "Actions",
+                noOutstanding: "No pending unpaid amounts. Excellent work!",
+
+                search: "Search...",
+                filter: "Filter",
+                add: "Add New",
+                edit: "Edit",
+                delete: "Delete",
+                bulkDelete: "Delete Selected",
+                save: "Save Changes",
+                cancel: "Cancel",
+                exportPdf: "Export PDF Invoice/Report",
+                createdDate: "Created Date",
+                all: "All",
+
+                clientId: "Client ID",
+                clientName: "Client Name",
+                mobile1: "Mobile 1",
+                mobile2: "Mobile 2",
+                email: "Email Address",
+                address: "Full Address",
+                projectsCount: "Projects Count",
+                clientDetail: "Client Activity & Financial Ledger",
+
+                projectId: "Project ID",
+                projectName: "Project Name",
+                category: "Category",
+                selectClient: "Select Client",
+                financialSummary: "Project Financial Overview",
+                statusCompleted: "Completed",
+                statusInProgress: "In Progress",
+                statusDelayed: "Delayed",
+                statusCancelled: "Cancelled",
+
+                cashboxId: "Box ID",
+                paymentMethod: "Payment Method",
+                currentBalance: "Current Balance",
+
+                movementNo: "Movement No",
+                transactionType: "Type",
+                deposit: "Deposit (+)",
+                withdraw: "Withdraw (-)",
+                transfer: "Transfer (+/-)",
+                amount: "Amount",
+                impact: "Balance Impact",
+                notes: "Transaction Notes",
+                cashbox: "Cashbox",
+                fromCashbox: "From Cashbox",
+                toCashbox: "To Cashbox",
+                optional: "Optional",
+                validationSameBox: "Error: Source and Target cashboxes cannot be the same!",
+                validationNegative: "Error: Amount must be greater than zero!",
+
+                clientReport: "Client Comprehensive Report",
+                projectReport: "Projects Productivity Report",
+                directTransactions: "Direct Client Transactions Log",
+                projectsSummary: "Contracted Projects Summary",
+                netDirect: "Net Direct Finance Impact",
+                fromDate: "From Date",
+                toDate: "To Date",
+
+                userId: "User ID",
+                role: "System Role",
+                password: "Password",
+                roles: {
+                    gm: "General Manager",
+                    manager: "Project Manager",
+                    employee: "Financial Accountant"
+                },
+
+                companyName: "Company / Freelancer Name",
+                companyLogo: "Company Logo (Square PNG)",
+                footerText: "Report Footer Text (Max 100 Chars)",
+                language: "Default System Language",
+                themePreset: "Interface UI Theme Preset",
+                customColor: "Custom Accent Color",
+                oceanBlue: "Ocean Blue",
+                forestGreen: "Forest Green",
+                sunsetOrange: "Sunset Orange",
+                royalIndigo: "Royal Indigo",
+                crimsonRose: "Crimson Rose",
+                midnightGold: "Midnight Gold",
+                customTheme: "Custom Specific Palette",
+
+                saveSuccess: "Data and themes updated successfully!",
+                deleteSuccess: "Deleted successfully!",
+                invalidForm: "Please check all required fields and business validation rules.",
+                generatingPdf: "Constructing and formatting premium PDF report layout...",
+                exportFinished: "Invoice/Report downloaded successfully as a valid PDF document."
+            }
+        };
+
+        const themePresets = {
+            oceanBlue: { primary: "#0284c7", hover: "#0369a1", light: "#e0f2fe" },
+            forestGreen: { primary: "#059669", hover: "#047857", light: "#d1fae5" },
+            sunsetOrange: { primary: "#ea580c", hover: "#c2410c", light: "#ffedd5" },
+            royalIndigo: { primary: "#4f46e5", hover: "#4338ca", light: "#e0e7ff" },
+            crimsonRose: { primary: "#e11d48", hover: "#be123c", light: "#ffe4e6" },
+            midnightGold: { primary: "#d97706", hover: "#b45309", light: "#fef3c7" }
+        };
+
+        const initialClients = [
+            { id: 101, name: "أحمد علي - شركة التقنية الذكية", mobile1: "01012345678", mobile2: "01234567890", email: "ahmed@smarttech.com", address: "شارع التسعين، التجمع الخامس، القاهرة", createdAt: "2026-01-15" },
+            { id: 102, name: "مؤسسة النور التعليمية والخدمية", mobile1: "01122334455", mobile2: "", email: "contact@noor-edu.org", address: "الدقي، أمام مجلس الدولة، الجيزة", createdAt: "2026-02-01" },
+            { id: 103, name: "سارة محمود - متجر روعة للأزياء", mobile1: "01555667788", mobile2: "01099887766", email: "sara@rawaa-boutique.eg", address: "لوران، طريق الحرية، الإسكندرية", createdAt: "2026-02-20" }
+        ];
+
+        const initialProjects = [
+            { id: 201, name: "تطوير تطبيق الهواتف لخدمة التوصيل", category: "Mobile Apps", clientId: 101, status: "In Progress", cost: 125000, paid: 80000, details: "بناء وتطوير تطبيق توصيل طلبات بنظام أندرويد وآي أو إس باستخدام Flutter مع لوحة تحكم كاملة.", createdAt: "2026-01-20" },
+            { id: 202, name: "تصميم وإطلاق موقع تعريفي متكامل", category: "Web Development", clientId: 102, status: "Completed", cost: 45000, paid: 45000, details: "موقع ويب تعريفي متعدد اللغات مع نظام إدارة محتوى مبسط وسريع ومتوافق مع محركات البحث.", createdAt: "2026-02-05" },
+            { id: 203, name: "إدارة وتدشين حملة تسويقية كبرى", category: "Digital Marketing", clientId: 103, status: "Delayed", cost: 35000, paid: 15000, details: "تخطيط وإطلاق حملة إعلانات ممولة على فيسبوك وانستجرام لتحسين المبيعات المباشرة للمتجر.", createdAt: "2026-02-22" },
+            { id: 204, name: "تحديث وتصميم الهوية البصرية الموحدة", category: "Branding", clientId: 101, status: "Cancelled", cost: 20000, paid: 0, details: "إعادة رسم وتصميم الشعار والمطبوعات الإدارية وصياغة دليل استخدام العلامة التجارية.", createdAt: "2026-02-28" }
+        ];
+
+        const initialCashboxes = [
+            { id: 1, paymentMethod: "Instapay", baseBalance: 120000, createdAt: "2026-01-01" },
+            { id: 2, paymentMethod: "Vodafone Cash", baseBalance: 35000, createdAt: "2026-01-01" },
+            { id: 3, paymentMethod: "Bank Transfer (CIB)", baseBalance: 450000, createdAt: "2026-01-01" },
+            { id: 4, paymentMethod: "Cash (الخزينة اليدوية)", baseBalance: 15000, createdAt: "2026-01-01" }
+        ];
+
+        const initialTransactions = [
+            { id: 1001, type: "Deposit", amount: 80000, balanceImpact: 80000, notes: "دفعة أولى لتشغيل مشروع تطبيق التوصيل", cashboxId: 3, clientId: 101, projectId: 201, toCashboxId: null, createdAt: "2026-01-20" },
+            { id: 1002, type: "Deposit", amount: 45000, balanceImpact: 45000, notes: "سداد الدفعة النهائية والكاملة لموقع مؤسسة النور", cashboxId: 1, clientId: 102, projectId: 202, toCashboxId: null, createdAt: "2026-02-05" },
+            { id: 1003, type: "Withdraw", amount: 12000, balanceImpact: -12000, notes: "شراء سيرفر استضافة وسيرفر تجريبي للعملاء", cashboxId: 3, clientId: null, projectId: null, toCashboxId: null, createdAt: "2026-02-10" },
+            { id: 1004, type: "Transfer", amount: 10000, balanceImpact: 0, notes: "تحويل سيولة داخلية من كاش مكتب للإنستاباي", cashboxId: 4, clientId: null, projectId: null, toCashboxId: 1, createdAt: "2026-02-15" },
+            { id: 1005, type: "Deposit", amount: 15000, balanceImpact: 15000, notes: "مقدم تعاقد حملة تسويق متجر سارة", cashboxId: 2, clientId: 103, projectId: 203, toCashboxId: null, createdAt: "2026-02-22" }
+        ];
+
+        const initialUsers = [
+            { id: 1, name: "م. محمود صابر", email: "m.saber@agency.com", role: "General Manager", createdAt: "2025-11-01" },
+            { id: 2, name: "ياسمين خالد", email: "yasmine.k@agency.com", role: "Manager", createdAt: "2026-01-10" },
+            { id: 3, name: "كريم عماد المالي", email: "karim.finance@agency.com", role: "Employee", createdAt: "2026-01-20" }
+        ];
+
+        function App() {
+            const [currentModule, setCurrentModule] = useState("dashboard");
+            const [lang, setLang] = useState("ar");
+            
+            // Theme Layout & Colors States
+            const [darkMode, setDarkMode] = useState(() => {
+                const stored = localStorage.getItem("darkMode");
+                return stored === "true";
+            });
+            const [layoutMode, setLayoutMode] = useState("sidebar"); // sidebar, topbar, compact
+            const [settings, setSettings] = useState({
+                companyName: "حلول البرمجة الذكية",
+                logoUrl: "",
+                footerText: "شكراً لتعاملكم معنا - نلتزم بتقديم أرقى الحلول التكنولوجية",
+                themePreset: "oceanBlue",
+                customColor: "#10b981"
+            });
+
+            // Core Database States
+            const [clients, setClients] = useState(initialClients);
+            const [projects, setProjects] = useState(initialProjects);
+            const [cashboxes, setCashboxes] = useState(initialCashboxes);
+            const [transactions, setTransactions] = useState(initialTransactions);
+            const [users, setUsers] = useState(initialUsers);
+
+            // Filters & UX Controllers
+            const [periodFilter, setPeriodFilter] = useState("allTime");
+            const [trendRange, setTrendRange] = useState("30");
+            const [clientSearch, setClientSearch] = useState("");
+            const [projectFilters, setProjectFilters] = useState({ client: "all", status: "all", minCost: "", maxCost: "", search: "" });
+            const [txFilters, setTxFilters] = useState({ search: "", type: "all", cashbox: "all", client: "all", minAmount: "", maxAmount: "" });
+
+            // Modal Controls
+            const [clientModal, setClientModal] = useState({ isOpen: false, data: null, isDetail: false });
+            const [projectModal, setProjectModal] = useState({ isOpen: false, data: null });
+            const [cashboxModal, setCashboxModal] = useState({ isOpen: false, data: null });
+            const [transactionModal, setTransactionModal] = useState({ isOpen: false, data: null });
+            const [userModal, setUserModal] = useState({ isOpen: false, data: null });
+
+            const [notification, setNotification] = useState(null);
+            const [selectedClientIds, setSelectedClientIds] = useState([]);
+            const [clientReportFilter, setClientReportFilter] = useState({ clientId: 101, fromDate: "", toDate: "" });
+            const [projectReportFilter, setProjectReportFilter] = useState({ clientId: "all", fromDate: "", toDate: "" });
+            const [exporting, setExporting] = useState(false);
+
+            const currentColors = useMemo(() => {
+                if (settings.themePreset === "customTheme") {
+                    const primary = settings.customColor;
+                    // basic light version calculation
+                    return {
+                        primary: primary,
+                        hover: primary,
+                        light: primary + "22" // hex opacity
+                    };
+                }
+                return themePresets[settings.themePreset] || themePresets.oceanBlue;
+            }, [settings.themePreset, settings.customColor]);
+
+            useEffect(() => {
+                const root = document.documentElement;
+                root.style.setProperty('--primary', currentColors.primary);
+                root.style.setProperty('--primary-hover', currentColors.hover);
+                root.style.setProperty('--primary-light', currentColors.light);
+
+                if (darkMode) {
+                    root.classList.add('dark');
+                    root.style.setProperty('--bg-main', '#0f172a'); // slate-900
+                    root.style.setProperty('--bg-card', '#1e293b'); // slate-800
+                    root.style.setProperty('--bg-header', '#1e293b');
+                    root.style.setProperty('--text-main', '#f8fafc'); // slate-50
+                    root.style.setProperty('--text-muted', '#94a3b8'); // slate-400
+                    root.style.setProperty('--border-color', '#334155'); // slate-700
+                    localStorage.setItem("darkMode", "true");
+                } else {
+                    root.classList.remove('dark');
+                    root.style.setProperty('--bg-main', '#f8fafc'); // slate-50
+                    root.style.setProperty('--bg-card', '#ffffff'); // white
+                    root.style.setProperty('--bg-header', '#ffffff');
+                    root.style.setProperty('--text-main', '#0f172a'); // slate-900
+                    root.style.setProperty('--text-muted', '#64748b'); // slate-500
+                    root.style.setProperty('--border-color', '#e2e8f0'); // slate-200
+                    localStorage.setItem("darkMode", "false");
+                }
+            }, [darkMode, currentColors]);
+
+            // Language direction Sync
+            useEffect(() => {
+                const htmlEl = document.documentElement;
+                if (lang === "ar") {
+                    htmlEl.setAttribute("dir", "rtl");
+                    htmlEl.setAttribute("lang", "ar");
+                } else {
+                    htmlEl.setAttribute("dir", "ltr");
+                    htmlEl.setAttribute("lang", "en");
+                }
+            }, [lang]);
+
+            const showToast = (message) => {
+                setNotification(message);
+                setTimeout(() => setNotification(null), 4000);
+            };
+
+            const t = (key) => {
+                if (translations[lang][key] !== undefined) return translations[lang][key];
+                return key;
+            };
+
+            // Dynamic Calculations
+            const computedCashboxes = useMemo(() => {
+                return cashboxes.map(box => {
+                    const deposits = transactions
+                        .filter(t => t.type === "Deposit" && t.cashboxId === box.id)
+                        .reduce((sum, t) => sum + t.amount, 0);
+
+                    const withdrawals = transactions
+                        .filter(t => t.type === "Withdraw" && t.cashboxId === box.id)
+                        .reduce((sum, t) => sum + t.amount, 0);
+
+                    const transfersIn = transactions
+                        .filter(t => t.type === "Transfer" && t.toCashboxId === box.id)
+                        .reduce((sum, t) => sum + t.amount, 0);
+
+                    const transfersOut = transactions
+                        .filter(t => t.type === "Transfer" && t.cashboxId === box.id)
+                        .reduce((sum, t) => sum + t.amount, 0);
+
+                    const currentBalance = box.baseBalance + deposits + transfersIn - withdrawals - transfersOut;
+                    return { ...box, currentBalance };
+                });
+            }, [cashboxes, transactions]);
+
+            const computedProjects = useMemo(() => {
+                return projects.map(proj => {
+                    const totalDeposits = transactions
+                        .filter(t => t.projectId === proj.id && t.type === "Deposit")
+                        .reduce((sum, t) => sum + t.amount, 0);
+                    
+                    const remaining = proj.cost - totalDeposits;
+                    return {
+                        ...proj,
+                        paid: totalDeposits,
+                        remaining: remaining >= 0 ? remaining : 0
+                    };
+                });
+            }, [projects, transactions]);
+
+            const kpis = useMemo(() => {
+                const totalCollected = transactions
+                    .filter(t => t.type === "Deposit")
+                    .reduce((sum, t) => sum + t.amount, 0);
+
+                const totalWithdrawn = transactions
+                    .filter(t => t.type === "Withdraw")
+                    .reduce((sum, t) => sum + t.amount, 0);
+
+                const netTotal = totalCollected - totalWithdrawn;
+
+                const totalProjectsCost = computedProjects.reduce((sum, p) => sum + p.cost, 0);
+                const totalPaidProjects = computedProjects.reduce((sum, p) => sum + p.paid, 0);
+                const totalOutstanding = totalProjectsCost - totalPaidProjects;
+
+                const totalCount = computedProjects.length;
+                const completed = computedProjects.filter(p => p.status === "Completed").length;
+                const active = computedProjects.filter(p => p.status === "In Progress").length;
+                const delayedOrCancelled = computedProjects.filter(p => p.status === "Delayed" || p.status === "Cancelled").length;
+
+                const clientVolumeMap = {};
+                computedProjects.forEach(p => {
+                    clientVolumeMap[p.clientId] = (clientVolumeMap[p.clientId] || 0) + p.cost;
+                });
+                let topClientId = null;
+                let maxVolume = 0;
+                Object.keys(clientVolumeMap).forEach(cid => {
+                    if (clientVolumeMap[cid] > maxVolume) {
+                        maxVolume = clientVolumeMap[cid];
+                        topClientId = parseInt(cid);
+                    }
+                });
+                const topClientObj = clients.find(c => c.id === topClientId);
+                const topClientName = topClientObj ? topClientObj.name : "N/A";
+
+                return {
+                    totalCollected,
+                    totalWithdrawn,
+                    netTotal,
+                    totalOutstanding,
+                    totalCount,
+                    completed,
+                    active,
+                    delayedOrCancelled,
+                    topClientName
+                };
+            }, [transactions, computedProjects, clients]);
+
+            const filteredClients = useMemo(() => {
+                return clients.filter(c => {
+                    const matchText = (c.name + " " + c.email + " " + c.mobile1 + " " + (c.mobile2 || "") + " " + c.address).toLowerCase();
+                    return matchText.includes(clientSearch.toLowerCase());
+                });
+            }, [clients, clientSearch]);
+
+            const filteredProjects = useMemo(() => {
+                return computedProjects.filter(p => {
+                    const clientObj = clients.find(c => c.id === p.clientId);
+                    const clientName = clientObj ? clientObj.name : "";
+                    const searchString = (p.name + " " + p.category + " " + clientName + " " + p.details).toLowerCase();
+                    
+                    const matchSearch = searchString.includes(projectFilters.search.toLowerCase());
+                    const matchClient = projectFilters.client === "all" || p.clientId === parseInt(projectFilters.client);
+                    const matchStatus = projectFilters.status === "all" || p.status === projectFilters.status;
+                    const matchMin = !projectFilters.minCost || p.cost >= parseFloat(projectFilters.minCost);
+                    const matchMax = !projectFilters.maxCost || p.cost <= parseFloat(projectFilters.maxCost);
+
+                    return matchSearch && matchClient && matchStatus && matchMin && matchMax;
+                });
+            }, [computedProjects, clients, projectFilters]);
+
+            const filteredTransactions = useMemo(() => {
+                return transactions.filter(t => {
+                    const clientObj = clients.find(c => c.id === t.clientId);
+                    const clientName = clientObj ? clientObj.name : "";
+                    const projectObj = projects.find(p => p.id === t.projectId);
+                    const projectName = projectObj ? projectObj.name : "";
+                    const cashboxObj = cashboxes.find(b => b.id === t.cashboxId);
+                    const cashboxName = cashboxObj ? cashboxObj.paymentMethod : "";
+                    
+                    const searchString = (t.notes + " " + clientName + " " + projectName + " " + cashboxName + " " + t.id).toLowerCase();
+                    const matchSearch = searchString.includes(txFilters.search.toLowerCase());
+                    const matchType = txFilters.type === "all" || t.type === txFilters.type;
+                    const matchBox = txFilters.cashbox === "all" || t.cashboxId === parseInt(txFilters.cashbox) || t.toCashboxId === parseInt(txFilters.cashbox);
+                    const matchClient = txFilters.client === "all" || t.clientId === parseInt(txFilters.client);
+                    const matchMin = !txFilters.minAmount || t.amount >= parseFloat(txFilters.minAmount);
+                    const matchMax = !txFilters.maxAmount || t.amount <= parseFloat(txFilters.maxAmount);
+
+                    return matchSearch && matchType && matchBox && matchClient && matchMin && matchMax;
+                });
+            }, [transactions, clients, projects, cashboxes, txFilters]);
+
+            const handleSaveClient = (e) => {
+                e.preventDefault();
+                const formData = new FormData(e.target);
+                const clientData = {
+                    id: clientModal.data ? clientModal.data.id : Date.now(),
+                    name: formData.get("name"),
+                    email: formData.get("email"),
+                    mobile1: formData.get("mobile1"),
+                    mobile2: formData.get("mobile2"),
+                    address: formData.get("address"),
+                    createdAt: clientModal.data ? clientModal.data.createdAt : new Date().toISOString().split("T")[0]
+                };
+
+                if (!clientData.name || !clientData.mobile1) {
+                    showToast(t("invalidForm"));
+                    return;
+                }
+
+                if (clientModal.data) {
+                    setClients(clients.map(c => c.id === clientData.id ? clientData : c));
+                } else {
+                    setClients([clientData, ...clients]);
+                }
+
+                setClientModal({ isOpen: false, data: null, isDetail: false });
+                showToast(t("saveSuccess"));
+            };
+
+            const handleDeleteClient = (id) => {
+                setClients(clients.filter(c => c.id !== id));
+                showToast(t("deleteSuccess"));
+            };
+
+            const handleSaveProject = (e) => {
+                e.preventDefault();
+                const formData = new FormData(e.target);
+                const projData = {
+                    id: projectModal.data ? projectModal.data.id : Date.now(),
+                    name: formData.get("name"),
+                    category: formData.get("category"),
+                    clientId: parseInt(formData.get("clientId")),
+                    status: formData.get("status"),
+                    cost: parseFloat(formData.get("cost")),
+                    details: formData.get("details"),
+                    createdAt: projectModal.data ? projectModal.data.createdAt : new Date().toISOString().split("T")[0]
+                };
+
+                if (!projData.name || !projData.clientId || isNaN(projData.cost)) {
+                    showToast(t("invalidForm"));
+                    return;
+                }
+
+                if (projectModal.data) {
+                    setProjects(projects.map(p => p.id === projData.id ? { ...p, ...projData } : p));
+                } else {
+                    setProjects([{ ...projData, paid: 0 }, ...projects]);
+                }
+
+                setProjectModal({ isOpen: false, data: null });
+                showToast(t("saveSuccess"));
+            };
+
+            const handleDeleteProject = (id) => {
+                setProjects(projects.filter(p => p.id !== id));
+                showToast(t("deleteSuccess"));
+            };
+
+            const handleSaveCashbox = (e) => {
+                e.preventDefault();
+                const formData = new FormData(e.target);
+                const paymentMethod = formData.get("paymentMethod");
+
+                if (!paymentMethod) {
+                    showToast(t("invalidForm"));
+                    return;
+                }
+
+                if (cashboxModal.data) {
+                    setCashboxes(cashboxes.map(b => b.id === cashboxModal.data.id ? { ...b, paymentMethod } : b));
+                } else {
+                    const newBox = {
+                        id: Date.now(),
+                        paymentMethod,
+                        baseBalance: 0,
+                        createdAt: new Date().toISOString().split("T")[0]
+                    };
+                    setCashboxes([...cashboxes, newBox]);
+                }
+
+                setCashboxModal({ isOpen: false, data: null });
+                showToast(t("saveSuccess"));
+            };
+
+            const handleSaveTransaction = (e) => {
+                e.preventDefault();
+                const formData = new FormData(e.target);
+                const type = formData.get("type");
+                const amount = parseFloat(formData.get("amount"));
+                const notes = formData.get("notes");
+                const cashboxId = parseInt(formData.get("cashboxId"));
+                const toCashboxId = formData.get("toCashboxId") ? parseInt(formData.get("toCashboxId")) : null;
+                const clientId = formData.get("clientId") ? parseInt(formData.get("clientId")) : null;
+                const projectId = formData.get("projectId") ? parseInt(formData.get("projectId")) : null;
+
+                if (isNaN(amount) || amount <= 0 || !cashboxId) {
+                    showToast(t("invalidForm"));
+                    return;
+                }
+
+                if (type === "Transfer") {
+                    if (!toCashboxId || cashboxId === toCashboxId) {
+                        showToast(t("validationSameBox"));
+                        return;
+                    }
+                }
+
+                const newTx = {
+                    id: transactionModal.data ? transactionModal.data.id : Date.now(),
+                    type,
+                    amount,
+                    balanceImpact: type === "Deposit" ? amount : type === "Withdraw" ? -amount : 0,
+                    notes,
+                    cashboxId,
+                    clientId: type === "Deposit" ? clientId : null,
+                    projectId: type === "Deposit" ? projectId : null,
+                    toCashboxId: type === "Transfer" ? toCashboxId : null,
+                    createdAt: transactionModal.data ? transactionModal.data.createdAt : new Date().toISOString().split("T")[0]
+                };
+
+                if (transactionModal.data) {
+                    setTransactions(transactions.map(t => t.id === newTx.id ? newTx : t));
+                } else {
+                    setTransactions([newTx, ...transactions]);
+                }
+
+                setTransactionModal({ isOpen: false, data: null });
+                showToast(t("saveSuccess"));
+            };
+
+            const handleDeleteTransaction = (id) => {
+                setTransactions(transactions.filter(t => t.id !== id));
+                showToast(t("deleteSuccess"));
+            };
+
+            const handleSaveUser = (e) => {
+                e.preventDefault();
+                const formData = new FormData(e.target);
+                const userData = {
+                    id: userModal.data ? userModal.data.id : Date.now(),
+                    name: formData.get("name"),
+                    email: formData.get("email"),
+                    role: formData.get("role"),
+                    createdAt: userModal.data ? userModal.data.createdAt : new Date().toISOString().split("T")[0]
+                };
+
+                if (!userData.name || !userData.email) {
+                    showToast(t("invalidForm"));
+                    return;
+                }
+
+                if (userModal.data) {
+                    setUsers(users.map(u => u.id === userData.id ? userData : u));
+                } else {
+                    setUsers([...users, userData]);
+                }
+
+                setUserModal({ isOpen: false, data: null });
+                showToast(t("saveSuccess"));
+            };
+
+            const simulatePdfExport = () => {
+                setExporting(true);
+                showToast(t("generatingPdf"));
+                setTimeout(() => {
+                    setExporting(false);
+                    showToast(t("exportFinished"));
+                    window.print();
+                }, 2000);
+            };
+
+            const renderSVGChart = () => {
+                const monthsData = [
+                    { label: "Mar 25", val: 35000 },
+                    { label: "May 25", val: 65000 },
+                    { label: "Jul 25", val: 45000 },
+                    { label: "Sep 25", val: 95000 },
+                    { label: "Nov 25", val: 120000 },
+                    { label: "Jan 26", val: 160000 },
+                    { label: "Mar 26", val: 210000 }
+                ];
+                
+                const width = 800;
+                const height = 220;
+                const padding = 35;
+                const chartWidth = width - padding * 2;
+                const chartHeight = height - padding * 2;
+
+                const maxVal = Math.max(...monthsData.map(d => d.val)) * 1.1;
+
+                const points = monthsData.map((d, i) => {
+                    const x = padding + (i / (monthsData.length - 1)) * chartWidth;
+                    const y = height - padding - (d.val / maxVal) * chartHeight;
+                    return { x, y, label: d.label, val: d.val };
+                });
+
+                const pathD = points.map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x} ${p.y}`).join(' ');
+                const fillD = `${pathD} L ${points[points.length - 1].x} ${height - padding} L ${points[0].x} ${height - padding} Z`;
+
+                return (
+                    <div className="relative w-full overflow-x-auto">
+                        <svg viewBox={`0 0 ${width} ${height}`} className="w-full min-w-[600px] h-[220px]">
+                            <defs>
+                                <linearGradient id="chartGrad" x1="0" y1="0" x2="0" y2="1">
+                                    <stop offset="0%" stopColor="var(--primary)" stopOpacity="0.4" />
+                                    <stop offset="100%" stopColor="var(--primary)" stopOpacity="0.0" />
+                                </linearGradient>
+                            </defs>
+                            
+                            {[0, 0.25, 0.5, 0.75, 1].map((ratio, index) => {
+                                const y = padding + chartHeight * ratio;
+                                const labelVal = Math.round(maxVal * (1 - ratio));
+                                return (
+                                    <g key={index} className="opacity-40">
+                                        <line x1={padding} y1={y} x2={width - padding} y2={y} stroke="var(--border-color)" strokeDasharray="4 4" />
+                                        <text x={lang === "ar" ? width - 5 : 5} y={y + 4} fontSize="9" className="fill-slate-400 dark:fill-slate-500 font-sans" textAnchor={lang === "ar" ? "end" : "start"}>
+                                            {labelVal.toLocaleString()} {t("egp")}
+                                        </text>
+                                    </g>
+                                );
+                            })}
+
+                            <path d={fillD} fill="url(#chartGrad)" />
+                            <path d={pathD} fill="none" stroke="var(--primary)" strokeWidth="3" strokeLinecap="round" />
+
+                            {points.map((p, index) => (
+                                <g key={index} className="group cursor-pointer">
+                                    <circle cx={p.x} cy={p.y} r="5" fill="var(--bg-card)" stroke="var(--primary)" strokeWidth="3" />
+                                    <circle cx={p.x} cy={p.y} r="9" fill="var(--primary)" className="opacity-0 group-hover:opacity-20 transition-opacity" />
+                                    <text x={p.x} y={height - 8} fontSize="10" fontWeight="600" className="fill-slate-500 dark:fill-slate-400 font-sans" textAnchor="middle">
+                                        {p.label}
+                                    </text>
+                                    
+                                    <g className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none">
+                                        <rect x={p.x - 55} y={p.y - 35} width="110" height="24" rx="4" fill="#1e293b" />
+                                        <text x={p.x} y={p.y - 19} fill="#ffffff" fontSize="10" fontWeight="600" textAnchor="middle" className="font-sans">
+                                            {p.val.toLocaleString()} {t("egp")}
+                                        </text>
+                                    </g>
+                                </g>
+                            ))}
+                        </svg>
+                    </div>
+                );
+            };
+
+            const clientReportData = useMemo(() => {
+                const targetClientId = parseInt(clientReportFilter.clientId);
+                const clientObj = clients.find(c => c.id === targetClientId);
+                if (!clientObj) return null;
+
+                const clientProjects = computedProjects.filter(p => p.clientId === targetClientId);
+                const directTxs = transactions.filter(t => t.clientId === targetClientId);
+
+                const projCount = clientProjects.length;
+                const totalCost = clientProjects.reduce((sum, p) => sum + p.cost, 0);
+                const totalPaid = clientProjects.reduce((sum, p) => sum + p.paid, 0);
+                const remaining = totalCost - totalPaid;
+                const netDirect = directTxs.reduce((sum, t) => sum + t.balanceImpact, 0);
+
+                return {
+                    clientObj,
+                    clientProjects,
+                    directTxs,
+                    projCount,
+                    totalCost,
+                    totalPaid,
+                    remaining,
+                    netDirect
+                };
+            }, [clientReportFilter, clients, computedProjects, transactions]);
+
+            const projectReportData = useMemo(() => {
+                const targetClientId = projectReportFilter.clientId;
+                let list = computedProjects;
+                if (targetClientId !== "all") {
+                    list = computedProjects.filter(p => p.clientId === parseInt(targetClientId));
+                }
+
+                const projCount = list.length;
+                const totalCost = list.reduce((sum, p) => sum + p.cost, 0);
+                const totalPaid = list.reduce((sum, p) => sum + p.paid, 0);
+                const remaining = totalCost - totalPaid;
+
+                return {
+                    list,
+                    projCount,
+                    totalCost,
+                    totalPaid,
+                    remaining
+                };
+            }, [projectReportFilter, computedProjects]);
+
+            const navItems = [
+                { id: "dashboard", icon: "📊", label: t("dashboard") },
+                { id: "clients", icon: "👥", label: t("clients") },
+                { id: "projects", icon: "📁", label: t("projects") },
+                { id: "cashboxes", icon: "💰", label: t("cashboxes") },
+                { id: "transactions", icon: "🔄", label: t("transactions") },
+                { id: "reports", icon: "📈", label: t("reports") },
+                { id: "users", icon: "🔑", label: t("users") },
+                { id: "settings", icon: "⚙️", label: t("settings") }
+            ];
+
+            // Conditionally adjust padding for compact mode
+            const paddingClass = layoutMode === "compact" ? "p-3 space-y-4" : "p-6 space-y-6";
+
+            return (
+                <div className={`h-full flex ${layoutMode === "topbar" ? "flex-col" : "flex-row"} overflow-hidden bg-customBg text-customText theme-transition`}>
+                    
+                    {}
+                    {layoutMode !== "topbar" && (
+                        <aside className={`${layoutMode === "compact" ? "w-20" : "w-64"} bg-slate-900 text-slate-300 flex flex-col justify-between flex-shrink-0 relative z-30 shadow-xl border-l border-slate-800 transition-all`}>
+                            <div>
+                                {/* Brand Info */}
+                                <div className="p-4 flex items-center gap-3 border-b border-slate-800">
+                                    <div className="w-10 h-10 rounded-xl flex items-center justify-center font-extrabold text-white text-lg shadow-lg bg-customPrimary">
+                                        {settings.companyName ? settings.companyName.charAt(0) : "W"}
+                                    </div>
+                                    {layoutMode !== "compact" && (
+                                        <div className="animate-fade-in">
+                                            <h1 className="text-sm font-bold text-white tracking-wide truncate max-w-[140px]">{settings.companyName || t("appName")}</h1>
+                                            <p className="text-xs text-slate-500">{t("subTitle")}</p>
+                                        </div>
+                                    )}
+                                </div>
+
+                                {/* Nav Options */}
+                                <nav className="p-3 space-y-1">
+                                    {navItems.map(item => {
+                                        const isActive = currentModule === item.id;
+                                        return (
+                                            <button
+                                                key={item.id}
+                                                onClick={() => setCurrentModule(item.id)}
+                                                className={`w-full flex items-center ${layoutMode === "compact" ? "justify-center py-3" : "gap-3 px-4 py-2.5"} rounded-lg text-sm font-medium transition-all theme-transition ${
+                                                    isActive 
+                                                        ? 'bg-customPrimary text-white shadow-md' 
+                                                        : 'hover:bg-slate-800 hover:text-slate-100 text-slate-400'
+                                                }`}
+                                                title={item.label}
+                                            >
+                                                <span className="text-lg">{item.icon}</span>
+                                                {layoutMode !== "compact" && <span>{item.label}</span>}
+                                            </button>
+                                        );
+                                    })}
+                                </nav>
+                            </div>
+
+                            {/* User details and Light/Dark quick Switch */}
+                            <div className="p-3 border-t border-slate-800 bg-slate-950">
+                                <div className="flex items-center justify-between mb-3 bg-slate-900 rounded-lg p-1 text-xs">
+                                    <button
+                                        onClick={() => setLang("ar")}
+                                        className={`flex-1 py-1 px-2 rounded-md text-center transition-all ${lang === "ar" ? "bg-slate-800 text-white font-bold" : "text-slate-500"}`}
+                                    >
+                                        عربي
+                                    </button>
+                                    <button
+                                        onClick={() => setLang("en")}
+                                        className={`flex-1 py-1 px-2 rounded-md text-center transition-all ${lang === "en" ? "bg-slate-800 text-white font-bold" : "text-slate-500"}`}
+                                    >
+                                        EN
+                                    </button>
+                                </div>
+
+                                <div className="flex items-center justify-around mb-2">
+                                    <button 
+                                        onClick={() => setDarkMode(!darkMode)}
+                                        className="p-1.5 rounded-lg bg-slate-800 text-amber-400 hover:text-white transition-colors"
+                                        title={darkMode ? t("lightMode") : t("darkMode")}
+                                    >
+                                        {darkMode ? "☀️" : "🌙"}
+                                    </button>
+                                    <select 
+                                        value={layoutMode} 
+                                        onChange={(e) => setLayoutMode(e.target.value)}
+                                        className="bg-slate-800 text-[10px] text-slate-300 rounded border border-slate-700 py-1 px-1.5 focus:outline-none"
+                                    >
+                                        <option value="sidebar">جانبي</option>
+                                        <option value="compact">مدمج</option>
+                                        <option value="topbar">علوي</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </aside>
+                    )}
+
+                    {}
+                    {layoutMode === "topbar" && (
+                        <header className="bg-slate-900 text-white border-b border-slate-800 px-6 py-3 flex flex-wrap items-center justify-between z-30 shadow-md">
+                            <div className="flex items-center gap-3">
+                                <div className="w-10 h-10 rounded-xl flex items-center justify-center font-extrabold text-white text-lg shadow bg-customPrimary">
+                                    {settings.companyName ? settings.companyName.charAt(0) : "W"}
+                                </div>
+                                <div>
+                                    <h1 className="text-sm font-bold text-white">{settings.companyName || t("appName")}</h1>
+                                    <p className="text-[10px] text-slate-400">{t("subTitle")}</p>
+                                </div>
+                            </div>
+
+                            {/* Top Navigation Row */}
+                            <nav className="flex items-center gap-1">
+                                {navItems.map(item => {
+                                    const isActive = currentModule === item.id;
+                                    return (
+                                        <button
+                                            key={item.id}
+                                            onClick={() => setCurrentModule(item.id)}
+                                            className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+                                                isActive 
+                                                    ? 'bg-customPrimary text-white shadow-sm' 
+                                                    : 'hover:bg-slate-800 text-slate-300'
+                                            }`}
+                                        >
+                                            <span>{item.icon}</span>
+                                            <span>{item.label}</span>
+                                        </button>
+                                    );
+                                })}
+                            </nav>
+
+                            {/* Top Utility Operations */}
+                            <div className="flex items-center gap-3">
+                                <button 
+                                    onClick={() => setDarkMode(!darkMode)}
+                                    className="p-1.5 rounded-lg bg-slate-800 text-amber-400 hover:text-white transition-colors text-sm"
+                                >
+                                    {darkMode ? "☀️" : "🌙"}
+                                </button>
+                                <div className="flex items-center gap-1 bg-slate-800 rounded p-1 text-xs">
+                                    <button onClick={() => setLang("ar")} className={`px-2 py-0.5 rounded ${lang === "ar" ? "bg-slate-700 text-white font-bold" : "text-slate-400"}`}>عربي</button>
+                                    <button onClick={() => setLang("en")} className={`px-2 py-0.5 rounded ${lang === "en" ? "bg-slate-700 text-white font-bold" : "text-slate-400"}`}>EN</button>
+                                </div>
+                                <select 
+                                    value={layoutMode} 
+                                    onChange={(e) => setLayoutMode(e.target.value)}
+                                    className="bg-slate-800 text-xs text-slate-300 rounded border border-slate-700 py-1 px-2 focus:outline-none"
+                                >
+                                    <option value="sidebar">مخطط جانبي</option>
+                                    <option value="compact">مخطط مدمج</option>
+                                    <option value="topbar">مخطط علوي</option>
+                                </select>
+                            </div>
+                        </header>
+                    )}
+
+                    {/* Main Workspace Frame */}
+                    <main className="flex-1 flex flex-col min-w-0 overflow-hidden bg-customBg transition-all">
+                        
+                        {/* Top Utility bar */}
+                        <header className="bg-customHeader border-b border-customBorder h-16 px-6 flex items-center justify-between flex-shrink-0 z-10 theme-transition shadow-sm">
+                            <div className="flex items-center gap-3">
+                                <span className="text-xl font-bold text-customText capitalize">
+                                    {t(currentModule)}
+                                </span>
+                                <span className="text-xs bg-customPrimaryLight text-customPrimary px-2 py-0.5 rounded-full font-semibold border border-customPrimary/20">
+                                    v3.5 (الجيل الذكي)
+                                </span>
+                            </div>
+
+                            <div className="flex items-center gap-4">
+                                {notification && (
+                                    <div className="bg-emerald-50 dark:bg-emerald-950/50 text-emerald-800 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 rounded-lg px-3 py-1.5 text-xs font-semibold flex items-center gap-2 animate-pulse">
+                                        <span>🔔</span>
+                                        <span>{notification}</span>
+                                    </div>
+                                )}
+                                <div className="text-xs text-customMuted font-sans hidden sm:block">
+                                    {new Date().toLocaleDateString(lang === "ar" ? "ar-EG" : "en-US", { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+                                </div>
+                            </div>
+                        </header>
+
+                        {/* Scrollable Work Board */}
+                        <div className={`flex-1 overflow-y-auto ${paddingClass} theme-transition`}>
+
+                            {}
+                            {currentModule === "dashboard" && (
+                                <>
+                                    {/* Dashboard Period Filter bar */}
+                                    <div className="bg-customCard p-3 rounded-xl border border-customBorder flex flex-wrap items-center justify-between gap-3 shadow-sm theme-transition">
+                                        <div className="flex items-center gap-2">
+                                            <span className="text-xs font-bold text-customMuted uppercase">{t("periodFilter")}:</span>
+                                            <div className="inline-flex rounded-lg border border-customBorder bg-customBg p-1">
+                                                {[
+                                                    { id: "currentMonth", label: t("currentMonth") },
+                                                    { id: "allTime", label: t("allTime") },
+                                                    { id: "customRange", label: t("customRange") }
+                                                ].map(p => (
+                                                    <button
+                                                        key={p.id}
+                                                        onClick={() => setPeriodFilter(p.id)}
+                                                        className={`px-3 py-1 rounded-md text-xs font-bold transition-all ${
+                                                            periodFilter === p.id 
+                                                                ? 'bg-customPrimary text-white shadow' 
+                                                                : 'text-customMuted hover:text-customText'
+                                                        }`}
+                                                    >
+                                                        {p.label}
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        </div>
+
+                                        {periodFilter === "customRange" && (
+                                            <div className="flex items-center gap-2 animate-fade-in text-xs">
+                                                <input type="date" className="border border-customBorder bg-customBg rounded px-2 py-1 text-customText" />
+                                                <span>-</span>
+                                                <input type="date" className="border border-customBorder bg-customBg rounded px-2 py-1 text-customText" />
+                                            </div>
+                                        )}
+                                    </div>
+
+                                    {/* KPI Grid cards with dynamic colors theme mapping */}
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                                        <div className="bg-customCard p-4 rounded-xl border-r-4 border-emerald-500 shadow-sm border border-customBorder theme-transition">
+                                            <div className="flex justify-between items-start">
+                                                <div>
+                                                    <p className="text-xs text-customMuted font-bold">{t("totalCollected")}</p>
+                                                    <h3 className="text-2xl font-bold text-emerald-600 dark:text-emerald-400 mt-1 font-sans">
+                                                        {kpis.totalCollected.toLocaleString()} <span className="text-xs font-normal">{t("egp")}</span>
+                                                    </h3>
+                                                </div>
+                                                <span className="text-2xl">💰</span>
+                                            </div>
+                                        </div>
+
+                                        <div className="bg-customCard p-4 rounded-xl border-r-4 border-rose-500 shadow-sm border border-customBorder theme-transition">
+                                            <div className="flex justify-between items-start">
+                                                <div>
+                                                    <p className="text-xs text-customMuted font-bold">{t("totalWithdrawn")}</p>
+                                                    <h3 className="text-2xl font-bold text-rose-600 dark:text-rose-400 mt-1 font-sans">
+                                                        {kpis.totalWithdrawn.toLocaleString()} <span className="text-xs font-normal">{t("egp")}</span>
+                                                    </h3>
+                                                </div>
+                                                <span className="text-2xl">💸</span>
+                                            </div>
+                                        </div>
+
+                                        <div className="bg-customCard p-4 rounded-xl border-r-4 border-customPrimary shadow-sm border border-customBorder theme-transition">
+                                            <div className="flex justify-between items-start">
+                                                <div>
+                                                    <p className="text-xs text-customMuted font-bold">{t("netTotal")}</p>
+                                                    <h3 className="text-2xl font-bold text-customPrimary mt-1 font-sans">
+                                                        {kpis.netTotal.toLocaleString()} <span className="text-xs font-normal">{t("egp")}</span>
+                                                    </h3>
+                                                </div>
+                                                <span className="text-2xl">🏦</span>
+                                            </div>
+                                        </div>
+
+                                        <div className="bg-customCard p-4 rounded-xl border-r-4 border-amber-500 shadow-sm border border-customBorder theme-transition">
+                                            <div className="flex justify-between items-start">
+                                                <div>
+                                                    <p className="text-xs text-customMuted font-bold">{t("topClient")}</p>
+                                                    <h3 className="text-base font-bold text-customText mt-1.5 truncate max-w-[140px]">
+                                                        {kpis.topClientName}
+                                                    </h3>
+                                                </div>
+                                                <span className="text-2xl">🏆</span>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* Second Row of Dynamic Status KPIs */}
+                                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                                        {[
+                                            { label: t("totalProjects"), value: kpis.totalCount, color: "text-customText", bg: "bg-slate-100 dark:bg-slate-800", icon: "📁" },
+                                            { label: t("completedProjects"), value: kpis.completed, color: "text-emerald-700 dark:text-emerald-400", bg: "bg-emerald-50 dark:bg-emerald-950/20", icon: "✅" },
+                                            { label: t("inProgressProjects"), value: kpis.active, color: "text-customPrimary", bg: "bg-customPrimaryLight", icon: "⚡" },
+                                            { label: t("delayedProjects"), value: kpis.delayedOrCancelled, color: "text-amber-700 dark:text-amber-400", bg: "bg-amber-50 dark:bg-amber-950/20", icon: "⚠️" }
+                                        ].map((item, index) => (
+                                            <div key={index} className={`p-3 rounded-xl border border-customBorder ${item.bg} flex items-center gap-3 theme-transition`}>
+                                                <span className="text-xl">{item.icon}</span>
+                                                <div>
+                                                    <p className="text-[11px] text-customMuted font-bold">{item.label}</p>
+                                                    <p className={`text-lg font-bold ${item.color}`}>{item.value}</p>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+
+                                    {/* Income trend Line chart & Outstanding unpaid clients widgets */}
+                                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                                        {/* Chart Widget */}
+                                        <div className="bg-customCard p-5 rounded-xl border border-customBorder lg:col-span-2 space-y-4 shadow-sm theme-transition">
+                                            <div className="flex justify-between items-center">
+                                                <h3 className="text-sm font-bold text-customText">{t("incomeTrend")}</h3>
+                                                <div className="flex gap-1.5 text-xs bg-customBg p-1 rounded-lg border border-customBorder">
+                                                    {[
+                                                        { label: "7D", val: "7" },
+                                                        { label: "30D", val: "30" },
+                                                        { label: "90D", val: "90" },
+                                                        { label: "12M", val: "365" }
+                                                    ].map(t => (
+                                                        <button 
+                                                            key={t.val} 
+                                                            onClick={() => setTrendRange(t.val)}
+                                                            className={`px-2 py-0.5 rounded ${trendRange === t.val ? 'bg-customPrimary text-white font-bold shadow-sm' : 'text-customMuted'}`}
+                                                        >
+                                                            {t.label}
+                                                        </button>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                            {renderSVGChart()}
+                                        </div>
+
+                                        {/* Outstanding Balances list */}
+                                        <div className="bg-customCard p-5 rounded-xl border border-customBorder flex flex-col justify-between shadow-sm theme-transition">
+                                            <div>
+                                                <div className="flex justify-between items-center mb-4 border-b border-customBorder pb-2">
+                                                    <h3 className="text-sm font-bold text-customText">{t("outstandingBalances")}</h3>
+                                                    <span className="text-xs font-bold text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/20 px-2.5 py-1 rounded-lg border border-amber-200 dark:border-amber-900">
+                                                        {kpis.totalOutstanding.toLocaleString()} {t("egp")}
+                                                    </span>
+                                                </div>
+
+                                                <div className="space-y-3 max-h-[170px] overflow-y-auto pr-1">
+                                                    {computedProjects.filter(p => p.remaining > 0).length === 0 ? (
+                                                        <p className="text-xs text-customMuted text-center py-6">{t("noOutstanding")}</p>
+                                                    ) : (
+                                                        computedProjects.filter(p => p.remaining > 0).map(proj => {
+                                                            const clientObj = clients.find(c => c.id === proj.clientId);
+                                                            return (
+                                                                <div key={proj.id} className="p-2.5 rounded-lg border border-customBorder bg-customBg hover:bg-customCard hover:shadow-sm transition-all text-xs flex justify-between items-center">
+                                                                    <div className="space-y-0.5">
+                                                                        <h4 className="font-bold text-customText truncate max-w-[150px]">{proj.name}</h4>
+                                                                        <p className="text-[10px] text-customMuted">{clientObj ? clientObj.name : ""}</p>
+                                                                    </div>
+                                                                    <div className="text-left font-sans">
+                                                                        <p className="text-xs font-bold text-rose-600 dark:text-rose-400">{proj.remaining.toLocaleString()} {t("egp")}</p>
+                                                                        <button 
+                                                                            onClick={() => setTransactionModal({ isOpen: true, data: { type: "Deposit", clientId: proj.clientId, projectId: proj.id, amount: proj.remaining } })}
+                                                                            className="text-[10px] text-emerald-600 dark:text-emerald-400 font-bold hover:underline"
+                                                                        >
+                                                                            {t("addPayment")}
+                                                                        </button>
+                                                                    </div>
+                                                                </div>
+                                                            );
+                                                        })
+                                                    )}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </>
+                            )}
+
+                            {}
+                            {currentModule === "clients" && (
+                                <div className="space-y-4">
+                                    <div className="flex flex-wrap justify-between items-center gap-3 bg-customCard p-4 rounded-xl border border-customBorder shadow-sm">
+                                        <div className="relative w-full sm:w-72">
+                                            <input
+                                                type="text"
+                                                placeholder={t("search")}
+                                                value={clientSearch}
+                                                onChange={(e) => setClientSearch(e.target.value)}
+                                                className="w-full text-xs border border-customBorder bg-customBg text-customText rounded-lg pl-3 pr-8 py-2 focus:outline-none focus:ring-1 focus:ring-customPrimary"
+                                            />
+                                            <span className="absolute right-3 top-2.5 text-customMuted text-sm">🔍</span>
+                                        </div>
+
+                                        <div className="flex gap-2">
+                                            {selectedClientIds.length > 0 && (
+                                                <button
+                                                    onClick={() => {
+                                                        setClients(clients.filter(c => !selectedClientIds.includes(c.id)));
+                                                        setSelectedClientIds([]);
+                                                        showToast(t("deleteSuccess"));
+                                                    }}
+                                                    className="bg-rose-50 dark:bg-rose-950/30 border border-rose-200 dark:border-rose-800 text-rose-700 dark:text-rose-400 text-xs px-3 py-2 rounded-lg font-bold"
+                                                >
+                                                    {t("bulkDelete")} ({selectedClientIds.length})
+                                                </button>
+                                            )}
+                                            <button
+                                                onClick={() => setClientModal({ isOpen: true, data: null, isDetail: false })}
+                                                className="text-white text-xs px-4 py-2 rounded-lg font-bold shadow-md hover:opacity-90 bg-customPrimary"
+                                            >
+                                                + {t("add")}
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    <div className="bg-customCard rounded-xl border border-customBorder overflow-hidden shadow-sm">
+                                        <div className="overflow-x-auto">
+                                            <table className="w-full text-right text-xs">
+                                                <thead className="bg-customBg text-customMuted uppercase font-bold border-b border-customBorder">
+                                                    <tr>
+                                                        <th className="p-3 w-10 text-center">
+                                                            <input
+                                                                type="checkbox"
+                                                                onChange={(e) => {
+                                                                    if (e.target.checked) setSelectedClientIds(filteredClients.map(c => c.id));
+                                                                    else setSelectedClientIds([]);
+                                                                }}
+                                                            />
+                                                        </th>
+                                                        <th className="p-3">{t("clientId")}</th>
+                                                        <th className="p-3">{t("clientName")}</th>
+                                                        <th className="p-3">{t("mobile1")}</th>
+                                                        <th className="p-3">{t("mobile2")}</th>
+                                                        <th className="p-3">{t("email")}</th>
+                                                        <th className="p-3">{t("address")}</th>
+                                                        <th className="p-3">{t("createdDate")}</th>
+                                                        <th className="p-3 text-center">{t("actions")}</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody className="divide-y divide-customBorder">
+                                                    {filteredClients.map(c => (
+                                                        <tr key={c.id} className="hover:bg-customBg/80 transition-all">
+                                                            <td className="p-3 text-center">
+                                                                <input
+                                                                    type="checkbox"
+                                                                    checked={selectedClientIds.includes(c.id)}
+                                                                    onChange={(e) => {
+                                                                        if (e.target.checked) setSelectedClientIds([...selectedClientIds, c.id]);
+                                                                        else setSelectedClientIds(selectedClientIds.filter(id => id !== c.id));
+                                                                    }}
+                                                                />
+                                                            </td>
+                                                            <td className="p-3 font-semibold text-customMuted font-sans">{c.id}</td>
+                                                            <td className="p-3 font-bold text-customText">{c.name}</td>
+                                                            <td className="p-3 font-sans">{c.mobile1}</td>
+                                                            <td className="p-3 font-sans">{c.mobile2 || "-"}</td>
+                                                            <td className="p-3 font-sans text-customMuted">{c.email}</td>
+                                                            <td className="p-3 max-w-[180px] truncate" title={c.address}>{c.address}</td>
+                                                            <td className="p-3 font-sans text-customMuted">{c.createdAt}</td>
+                                                            <td className="p-3">
+                                                                <div className="flex justify-center gap-1.5">
+                                                                    <button
+                                                                        onClick={() => setClientModal({ isOpen: true, data: c, isDetail: true })}
+                                                                        className="p-1.5 hover:bg-customBg rounded text-customPrimary"
+                                                                        title="تفاصيل الملف المالي والنشاط"
+                                                                    >
+                                                                        📊
+                                                                    </button>
+                                                                    <button
+                                                                        onClick={() => setClientModal({ isOpen: true, data: c, isDetail: false })}
+                                                                        className="p-1.5 hover:bg-customBg rounded text-blue-600"
+                                                                    >
+                                                                        ✏️
+                                                                    </button>
+                                                                    <button
+                                                                        onClick={() => handleDeleteClient(c.id)}
+                                                                        className="p-1.5 hover:bg-rose-50 rounded text-rose-600"
+                                                                    >
+                                                                        🗑️
+                                                                    </button>
+                                                                </div>
+                                                            </td>
+                                                        </tr>
+                                                    ))}
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+
+                            {}
+                            {currentModule === "projects" && (
+                                <div className="space-y-4">
+                                    <div className="bg-customCard p-4 rounded-xl border border-customBorder space-y-3 shadow-sm">
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-3">
+                                            <input
+                                                type="text"
+                                                placeholder={t("search")}
+                                                value={projectFilters.search}
+                                                onChange={(e) => setProjectFilters({ ...projectFilters, search: e.target.value })}
+                                                className="text-xs border border-customBorder bg-customBg text-customText rounded-lg px-2.5 py-1.5"
+                                            />
+                                            <select
+                                                value={projectFilters.client}
+                                                onChange={(e) => setProjectFilters({ ...projectFilters, client: e.target.value })}
+                                                className="text-xs border border-customBorder bg-customBg text-customText rounded-lg px-2.5 py-1.5"
+                                            >
+                                                <option value="all">{t("selectClient")} ({t("all")})</option>
+                                                {clients.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                                            </select>
+                                            <select
+                                                value={projectFilters.status}
+                                                onChange={(e) => setProjectFilters({ ...projectFilters, status: e.target.value })}
+                                                className="text-xs border border-customBorder bg-customBg text-customText rounded-lg px-2.5 py-1.5"
+                                            >
+                                                <option value="all">{t("status")} ({t("all")})</option>
+                                                <option value="Completed">{t("statusCompleted")}</option>
+                                                <option value="In Progress">{t("statusInProgress")}</option>
+                                                <option value="Delayed">{t("statusDelayed")}</option>
+                                                <option value="Cancelled">{t("statusCancelled")}</option>
+                                            </select>
+                                            <input
+                                                type="number"
+                                                placeholder="أقل تكلفة"
+                                                value={projectFilters.minCost}
+                                                onChange={(e) => setProjectFilters({ ...projectFilters, minCost: e.target.value })}
+                                                className="text-xs border border-customBorder bg-customBg text-customText rounded-lg px-2.5 py-1.5"
+                                            />
+                                            <input
+                                                type="number"
+                                                placeholder="أقصى تكلفة"
+                                                value={projectFilters.maxCost}
+                                                onChange={(e) => setProjectFilters({ ...projectFilters, maxCost: e.target.value })}
+                                                className="text-xs border border-customBorder bg-customBg text-customText rounded-lg px-2.5 py-1.5"
+                                            />
+                                        </div>
+
+                                        <div className="flex justify-between items-center pt-2 border-t border-customBorder">
+                                            <button 
+                                                onClick={() => setProjectFilters({ client: "all", status: "all", minCost: "", maxCost: "", search: "" })}
+                                                className="text-[11px] text-customMuted font-bold hover:underline"
+                                            >
+                                                🧹 إعادة تعيين الفلاتر
+                                            </button>
+                                            <button
+                                                onClick={() => setProjectModal({ isOpen: true, data: null })}
+                                                className="text-white text-xs px-4 py-1.5 rounded-lg font-bold shadow bg-customPrimary"
+                                            >
+                                                + {t("add")}
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    <div className="bg-customCard rounded-xl border border-customBorder overflow-hidden shadow-sm">
+                                        <div className="overflow-x-auto">
+                                            <table className="w-full text-right text-xs">
+                                                <thead className="bg-customBg text-customMuted uppercase font-bold border-b border-customBorder">
+                                                    <tr>
+                                                        <th className="p-3">{t("projectId")}</th>
+                                                        <th className="p-3">{t("projectName")}</th>
+                                                        <th className="p-3">{t("category")}</th>
+                                                        <th className="p-3">{t("client")}</th>
+                                                        <th className="p-3">{t("status")}</th>
+                                                        <th className="p-3">{t("cost")}</th>
+                                                        <th className="p-3">{t("paid")}</th>
+                                                        <th className="p-3">{t("remaining")}</th>
+                                                        <th className="p-3 text-center">{t("actions")}</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody className="divide-y divide-customBorder">
+                                                    {filteredProjects.map(p => {
+                                                        const clientObj = clients.find(c => c.id === p.clientId);
+                                                        
+                                                        let badgeClass = "bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300";
+                                                        if (p.status === "Completed") badgeClass = "bg-emerald-50 dark:bg-emerald-950/20 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-900";
+                                                        if (p.status === "In Progress") badgeClass = "bg-blue-50 dark:bg-blue-950/20 text-blue-700 dark:text-blue-400 border border-blue-200 dark:border-blue-900";
+                                                        if (p.status === "Delayed") badgeClass = "bg-amber-50 dark:bg-amber-950/20 text-amber-700 dark:text-amber-400 border border-amber-200 dark:border-amber-900";
+                                                        if (p.status === "Cancelled") badgeClass = "bg-rose-50 dark:bg-rose-950/20 text-rose-700 dark:text-rose-400 border border-rose-200 dark:border-rose-900";
+
+                                                        return (
+                                                            <tr key={p.id} className="hover:bg-customBg/80 transition-all">
+                                                                <td className="p-3 font-semibold text-customMuted font-sans">{p.id}</td>
+                                                                <td className="p-3 font-bold text-customText">{p.name}</td>
+                                                                <td className="p-3 font-medium text-customMuted">{p.category}</td>
+                                                                <td className="p-3 font-bold text-customText">{clientObj ? clientObj.name : "N/A"}</td>
+                                                                <td className="p-3">
+                                                                    <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold ${badgeClass}`}>
+                                                                        {p.status === "Completed" ? t("statusCompleted") : p.status === "In Progress" ? t("statusInProgress") : p.status === "Delayed" ? t("statusDelayed") : t("statusCancelled")}
+                                                                    </span>
+                                                                </td>
+                                                                <td className="p-3 font-sans font-bold text-customText">{p.cost.toLocaleString()} ج.م</td>
+                                                                <td className="p-3 font-sans font-bold text-emerald-600 dark:text-emerald-400">{p.paid.toLocaleString()} ج.م</td>
+                                                                <td className="p-3 font-sans font-bold text-rose-600 dark:text-rose-400">{p.remaining.toLocaleString()} ج.م</td>
+                                                                <td className="p-3">
+                                                                    <div className="flex justify-center gap-1.5">
+                                                                        <button
+                                                                            onClick={() => setProjectModal({ isOpen: true, data: p })}
+                                                                            className="p-1.5 hover:bg-customBg rounded text-blue-600"
+                                                                        >
+                                                                            ✏️
+                                                                        </button>
+                                                                        <button
+                                                                            onClick={() => handleDeleteProject(p.id)}
+                                                                            className="p-1.5 hover:bg-rose-50 rounded text-rose-600"
+                                                                        >
+                                                                            🗑️
+                                                                        </button>
+                                                                    </div>
+                                                                </td>
+                                                            </tr>
+                                                        );
+                                                    })}
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+
+                            {}
+                            {currentModule === "cashboxes" && (
+                                <div className="space-y-6">
+                                    <div className="flex justify-between items-center bg-customCard p-4 rounded-xl border border-customBorder shadow-sm">
+                                        <p className="text-xs text-customMuted font-medium">كل القنوات المالية النشطة للتسوية والتحويل</p>
+                                        <button
+                                            onClick={() => setCashboxModal({ isOpen: true, data: null })}
+                                            className="text-white text-xs px-4 py-2 rounded-lg font-bold shadow bg-customPrimary"
+                                        >
+                                            + {t("add")}
+                                        </button>
+                                    </div>
+
+                                    <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                                        {computedCashboxes.map(box => {
+                                            let icon = "🏧";
+                                            if (box.paymentMethod.includes("Vodafone")) icon = "📱";
+                                            if (box.paymentMethod.includes("Cash") || box.paymentMethod.includes("نقدي")) icon = "💵";
+                                            if (box.paymentMethod.includes("Instapay")) icon = "⚡";
+
+                                            return (
+                                                <div key={box.id} className="bg-customCard p-4 rounded-xl shadow-sm border border-customBorder flex flex-col justify-between space-y-4 theme-transition">
+                                                    <div className="flex justify-between items-start">
+                                                        <div className="space-y-1">
+                                                            <span className="text-[10px] font-bold text-customMuted font-sans">ID: {box.id}</span>
+                                                            <h4 className="font-bold text-customText text-sm">{box.paymentMethod}</h4>
+                                                        </div>
+                                                        <span className="text-2xl">{icon}</span>
+                                                    </div>
+
+                                                    <div>
+                                                        <span className="text-[10px] text-customMuted block">{t("currentBalance")}</span>
+                                                        <p className="text-xl font-extrabold text-customText font-sans mt-0.5">
+                                                            {box.currentBalance.toLocaleString()} <span className="text-xs font-normal text-customMuted">{t("egp")}</span>
+                                                        </p>
+                                                    </div>
+
+                                                    <div className="flex justify-end gap-1.5 pt-2 border-t border-customBorder">
+                                                        <button
+                                                            onClick={() => setCashboxModal({ isOpen: true, data: box })}
+                                                            className="text-xs text-customPrimary font-bold hover:underline"
+                                                        >
+                                                            {t("edit")}
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                </div>
+                            )}
+
+                            {}
+                            {currentModule === "transactions" && (
+                                <div className="space-y-4">
+                                    <div className="bg-customCard p-4 rounded-xl border border-customBorder space-y-3 shadow-sm">
+                                        <div className="grid grid-cols-1 sm:grid-cols-3 md:grid-cols-6 gap-3">
+                                            <input
+                                                type="text"
+                                                placeholder="رقم الحركة أو الوصف..."
+                                                value={txFilters.search}
+                                                onChange={(e) => setTxFilters({ ...txFilters, search: e.target.value })}
+                                                className="text-xs border border-customBorder bg-customBg text-customText rounded-lg px-2.5 py-1.5"
+                                            />
+                                            <select
+                                                value={txFilters.type}
+                                                onChange={(e) => setTxFilters({ ...txFilters, type: e.target.value })}
+                                                className="text-xs border border-customBorder bg-customBg text-customText rounded-lg px-2.5 py-1.5"
+                                            >
+                                                <option value="all">كل الحركات</option>
+                                                <option value="Deposit">إيداع (+)</option>
+                                                <option value="Withdraw">سحب (-)</option>
+                                                <option value="Transfer">تحويل مالي</option>
+                                            </select>
+                                            <select
+                                                value={txFilters.cashbox}
+                                                onChange={(e) => setTxFilters({ ...txFilters, cashbox: e.target.value })}
+                                                className="text-xs border border-customBorder bg-customBg text-customText rounded-lg px-2.5 py-1.5"
+                                            >
+                                                <option value="all">كل الصناديق</option>
+                                                {cashboxes.map(b => <option key={b.id} value={b.id}>{b.paymentMethod}</option>)}
+                                            </select>
+                                            <select
+                                                value={txFilters.client}
+                                                onChange={(e) => setTxFilters({ ...txFilters, client: e.target.value })}
+                                                className="text-xs border border-customBorder bg-customBg text-customText rounded-lg px-2.5 py-1.5"
+                                            >
+                                                <option value="all">كل العملاء</option>
+                                                {clients.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                                            </select>
+                                            <input
+                                                type="number"
+                                                placeholder="الحد الأدنى للمبلغ"
+                                                value={txFilters.minAmount}
+                                                onChange={(e) => setTxFilters({ ...txFilters, minAmount: e.target.value })}
+                                                className="text-xs border border-customBorder bg-customBg text-customText rounded-lg px-2.5 py-1.5"
+                                            />
+                                            <input
+                                                type="number"
+                                                placeholder="الحد الأقصى للمبلغ"
+                                                value={txFilters.maxAmount}
+                                                onChange={(e) => setTxFilters({ ...txFilters, maxAmount: e.target.value })}
+                                                className="text-xs border border-customBorder bg-customBg text-customText rounded-lg px-2.5 py-1.5"
+                                            />
+                                        </div>
+
+                                        <div className="flex justify-between items-center pt-2 border-t border-customBorder">
+                                            <button
+                                                onClick={() => setTxFilters({ search: "", type: "all", cashbox: "all", client: "all", minAmount: "", maxAmount: "" })}
+                                                className="text-[11px] text-customMuted font-bold hover:underline"
+                                            >
+                                                🧹 إعادة تعيين الفلاتر
+                                            </button>
+                                            <button
+                                                onClick={() => setTransactionModal({ isOpen: true, data: null })}
+                                                className="text-white text-xs px-4 py-1.5 rounded-lg font-bold shadow bg-customPrimary"
+                                            >
+                                                + {t("add")}
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    <div className="bg-customCard rounded-xl border border-customBorder overflow-hidden shadow-sm">
+                                        <div className="overflow-x-auto">
+                                            <table className="w-full text-right text-xs">
+                                                <thead className="bg-customBg text-customMuted uppercase font-bold border-b border-customBorder">
+                                                    <tr>
+                                                        <th className="p-3">{t("movementNo")}</th>
+                                                        <th className="p-3">{t("transactionType")}</th>
+                                                        <th className="p-3">{t("amount")}</th>
+                                                        <th className="p-3">{t("cashbox")}</th>
+                                                        <th className="p-3">{t("client")} / {t("project")}</th>
+                                                        <th className="p-3">{t("notes")}</th>
+                                                        <th className="p-3">{t("createdDate")}</th>
+                                                        <th className="p-3 text-center">{t("actions")}</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody className="divide-y divide-customBorder">
+                                                    {filteredTransactions.map(tx => {
+                                                        const clientObj = clients.find(c => c.id === tx.clientId);
+                                                        const projObj = projects.find(p => p.id === tx.projectId);
+                                                        const boxObj = cashboxes.find(b => b.id === tx.cashboxId);
+                                                        const toBoxObj = cashboxes.find(b => b.id === tx.toCashboxId);
+
+                                                        let typeColor = "text-emerald-600 bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-100 dark:border-emerald-900";
+                                                        let sign = "+";
+                                                        if (tx.type === "Withdraw") {
+                                                            typeColor = "text-rose-600 bg-rose-50 dark:bg-rose-950/20 border border-rose-100 dark:border-rose-900";
+                                                            sign = "-";
+                                                        } else if (tx.type === "Transfer") {
+                                                            typeColor = "text-amber-700 bg-amber-50 dark:bg-amber-950/20 border border-amber-100 dark:border-amber-900";
+                                                            sign = "⇄";
+                                                        }
+
+                                                        return (
+                                                            <tr key={tx.id} className="hover:bg-customBg/80 transition-all">
+                                                                <td className="p-3 font-semibold text-customMuted font-sans">{tx.id}</td>
+                                                                <td className="p-3">
+                                                                    <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${typeColor}`}>
+                                                                        {tx.type === "Deposit" ? t("deposit") : tx.type === "Withdraw" ? t("withdraw") : t("transfer")}
+                                                                    </span>
+                                                                </td>
+                                                                <td className="p-3 font-sans font-extrabold text-sm">
+                                                                    <span className={tx.type === "Deposit" ? "text-emerald-600" : tx.type === "Withdraw" ? "text-rose-600" : "text-amber-700"}>
+                                                                        {sign} {tx.amount.toLocaleString()} {t("egp")}
+                                                                    </span>
+                                                                </td>
+                                                                <td className="p-3 font-medium text-customText">
+                                                                    {boxObj ? boxObj.paymentMethod : "N/A"}
+                                                                    {tx.type === "Transfer" && toBoxObj && (
+                                                                        <span className="text-customMuted"> ➔ {toBoxObj.paymentMethod}</span>
+                                                                    )}
+                                                                </td>
+                                                                <td className="p-3">
+                                                                    {clientObj ? (
+                                                                        <div className="space-y-0.5">
+                                                                            <p className="font-bold text-customText">{clientObj.name}</p>
+                                                                            <p className="text-[10px] text-customMuted">{projObj ? projObj.name : ""}</p>
+                                                                        </div>
+                                                                    ) : (
+                                                                        <span className="text-customMuted">-</span>
+                                                                    )}
+                                                                </td>
+                                                                <td className="p-3 max-w-[200px] truncate text-customMuted" title={tx.notes}>{tx.notes || "-"}</td>
+                                                                <td className="p-3 font-sans text-customMuted">{tx.createdAt}</td>
+                                                                <td className="p-3">
+                                                                    <div className="flex justify-center gap-1.5">
+                                                                        <button
+                                                                            onClick={() => setTransactionModal({ isOpen: true, data: tx })}
+                                                                            className="p-1.5 hover:bg-customBg rounded text-blue-600"
+                                                                        >
+                                                                            ✏️
+                                                                        </button>
+                                                                        <button
+                                                                            onClick={() => handleDeleteTransaction(tx.id)}
+                                                                            className="p-1.5 hover:bg-rose-50 rounded text-rose-600"
+                                                                        >
+                                                                            🗑️
+                                                                        </button>
+                                                                    </div>
+                                                                </td>
+                                                            </tr>
+                                                        );
+                                                    })}
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+
+                            {}
+                            {currentModule === "reports" && (
+                                <div className="space-y-8">
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                        
+                                        {/* Client Report */}
+                                        <div className="bg-customCard p-5 rounded-xl border border-customBorder shadow-sm space-y-4">
+                                            <div className="flex items-center gap-2 border-b border-customBorder pb-2">
+                                                <span className="text-xl">📊</span>
+                                                <h3 className="font-bold text-sm text-customText">{t("clientReport")}</h3>
+                                            </div>
+
+                                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                                                <div className="flex flex-col gap-1 sm:col-span-3 text-xs">
+                                                    <label className="font-bold text-customMuted uppercase">{t("client")}</label>
+                                                    <select
+                                                        value={clientReportFilter.clientId}
+                                                        onChange={(e) => setClientReportFilter({ ...clientReportFilter, clientId: parseInt(e.target.value) })}
+                                                        className="border border-customBorder bg-customBg text-customText rounded-lg p-2"
+                                                    >
+                                                        {clients.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                                                    </select>
+                                                </div>
+                                                <div className="flex flex-col gap-1 text-xs">
+                                                    <label className="font-bold text-customMuted">{t("fromDate")}</label>
+                                                    <input
+                                                        type="date"
+                                                        value={clientReportFilter.fromDate}
+                                                        onChange={(e) => setClientReportFilter({ ...clientReportFilter, fromDate: e.target.value })}
+                                                        className="border border-customBorder bg-customBg text-customText rounded-lg p-1.5"
+                                                    />
+                                                </div>
+                                                <div className="flex flex-col gap-1 text-xs">
+                                                    <label className="font-bold text-customMuted">{t("toDate")}</label>
+                                                    <input
+                                                        type="date"
+                                                        value={clientReportFilter.toDate}
+                                                        onChange={(e) => setClientReportFilter({ ...clientReportFilter, toDate: e.target.value })}
+                                                        className="border border-customBorder bg-customBg text-customText rounded-lg p-1.5"
+                                                    />
+                                                </div>
+                                                <div className="flex items-end">
+                                                    <button
+                                                        onClick={simulatePdfExport}
+                                                        className="w-full text-white font-bold text-xs py-2 rounded-lg hover:opacity-95 shadow bg-customPrimary"
+                                                    >
+                                                        🖨️ {t("exportPdf")}
+                                                    </button>
+                                                </div>
+                                            </div>
+
+                                            {clientReportData && (
+                                                <div className="border border-customBorder rounded-lg p-4 bg-customBg/50 space-y-4">
+                                                    <div className="p-3 bg-customCard rounded-lg border border-customBorder flex justify-between items-start">
+                                                        <div>
+                                                            <h4 className="font-bold text-customText text-sm">{clientReportData.clientObj.name}</h4>
+                                                            <p className="text-[10px] text-customMuted mt-1">📧 {clientReportData.clientObj.email} | 📱 {clientReportData.clientObj.mobile1}</p>
+                                                        </div>
+                                                        <span className="text-[10px] bg-customPrimaryLight font-bold text-customPrimary px-2 py-0.5 rounded">بطاقة النشاط</span>
+                                                    </div>
+
+                                                    <div className="grid grid-cols-2 gap-2 text-xs">
+                                                        <div className="bg-customCard p-2.5 rounded border border-customBorder">
+                                                            <span className="text-[10px] text-customMuted block">{t("projectsCount")}</span>
+                                                            <span className="font-bold text-customText">{clientReportData.projCount} مشاريع</span>
+                                                        </div>
+                                                        <div className="bg-customCard p-2.5 rounded border border-customBorder">
+                                                            <span className="text-[10px] text-customMuted block">{t("cost")}</span>
+                                                            <span className="font-bold text-customText">{clientReportData.totalCost.toLocaleString()} ج.م</span>
+                                                        </div>
+                                                        <div className="bg-customCard p-2.5 rounded border border-customBorder">
+                                                            <span className="text-[10px] text-customMuted block">{t("paid")}</span>
+                                                            <span className="font-bold text-emerald-600 dark:text-emerald-400">{clientReportData.totalPaid.toLocaleString()} ج.م</span>
+                                                        </div>
+                                                        <div className="bg-customCard p-2.5 rounded border border-customBorder">
+                                                            <span className="text-[10px] text-customMuted block">{t("remaining")}</span>
+                                                            <span className="font-bold text-rose-600 dark:text-rose-400">{clientReportData.remaining.toLocaleString()} ج.م</span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            )}
+                                        </div>
+
+                                        {/* Project Report */}
+                                        <div className="bg-customCard p-5 rounded-xl border border-customBorder shadow-sm space-y-4">
+                                            <div className="flex items-center gap-2 border-b border-customBorder pb-2">
+                                                <span className="text-xl">📈</span>
+                                                <h3 className="font-bold text-sm text-customText">{t("projectReport")}</h3>
+                                            </div>
+
+                                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                                                <div className="flex flex-col gap-1 sm:col-span-3 text-xs">
+                                                    <label className="font-bold text-customMuted uppercase">{t("client")}</label>
+                                                    <select
+                                                        value={projectReportFilter.clientId}
+                                                        onChange={(e) => setProjectReportFilter({ ...projectReportFilter, clientId: e.target.value })}
+                                                        className="border border-customBorder bg-customBg text-customText rounded-lg p-2"
+                                                    >
+                                                        <option value="all">كل العملاء ({t("all")})</option>
+                                                        {clients.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                                                    </select>
+                                                </div>
+                                                <div className="flex flex-col gap-1 text-xs">
+                                                    <label className="font-bold text-customMuted">{t("fromDate")}</label>
+                                                    <input
+                                                        type="date"
+                                                        value={projectReportFilter.fromDate}
+                                                        onChange={(e) => setProjectReportFilter({ ...projectReportFilter, fromDate: e.target.value })}
+                                                        className="border border-customBorder bg-customBg text-customText rounded-lg p-1.5"
+                                                    />
+                                                </div>
+                                                <div className="flex flex-col gap-1 text-xs">
+                                                    <label className="font-bold text-customMuted">{t("toDate")}</label>
+                                                    <input
+                                                        type="date"
+                                                        value={projectReportFilter.toDate}
+                                                        onChange={(e) => setProjectReportFilter({ ...projectReportFilter, toDate: e.target.value })}
+                                                        className="border border-customBorder bg-customBg text-customText rounded-lg p-1.5"
+                                                    />
+                                                </div>
+                                                <div className="flex items-end">
+                                                    <button
+                                                        onClick={simulatePdfExport}
+                                                        className="w-full text-white font-bold text-xs py-2 rounded-lg hover:opacity-95 shadow bg-customPrimary"
+                                                    >
+                                                        🖨️ {t("exportPdf")}
+                                                    </button>
+                                                </div>
+                                            </div>
+
+                                            {projectReportData && (
+                                                <div className="border border-customBorder rounded-lg p-4 bg-customBg/50 space-y-4">
+                                                    <div className="grid grid-cols-2 gap-2 text-xs">
+                                                        <div className="bg-customCard p-2.5 rounded border border-customBorder">
+                                                            <span className="text-[10px] text-customMuted block">{t("totalProjects")}</span>
+                                                            <span className="font-bold text-customText">{projectReportData.projCount}</span>
+                                                        </div>
+                                                        <div className="bg-customCard p-2.5 rounded border border-customBorder">
+                                                            <span className="text-[10px] text-customMuted block">{t("cost")}</span>
+                                                            <span className="font-bold text-customText">{projectReportData.totalCost.toLocaleString()} ج.م</span>
+                                                        </div>
+                                                        <div className="bg-customCard p-2.5 rounded border border-customBorder">
+                                                            <span className="text-[10px] text-customMuted block">{t("paid")}</span>
+                                                            <span className="font-bold text-emerald-600 dark:text-emerald-400">{projectReportData.totalPaid.toLocaleString()} ج.م</span>
+                                                        </div>
+                                                        <div className="bg-customCard p-2.5 rounded border border-customBorder">
+                                                            <span className="text-[10px] text-customMuted block">{t("remaining")}</span>
+                                                            <span className="font-bold text-rose-600 dark:text-rose-400">{projectReportData.remaining.toLocaleString()} ج.م</span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            )}
+                                        </div>
+
+                                    </div>
+                                </div>
+                            )}
+
+                            {}
+                            {currentModule === "users" && (
+                                <div className="space-y-4">
+                                    <div className="flex justify-between items-center bg-customCard p-4 rounded-xl border border-customBorder shadow-sm">
+                                        <p className="text-xs text-customMuted font-medium">إدارة الصلاحيات وحسابات طاقم العمل</p>
+                                        <button
+                                            onClick={() => setUserModal({ isOpen: true, data: null })}
+                                            className="text-white text-xs px-4 py-2 rounded-lg font-bold shadow bg-customPrimary"
+                                        >
+                                            + {t("add")}
+                                        </button>
+                                    </div>
+
+                                    <div className="bg-customCard rounded-xl border border-customBorder overflow-hidden shadow-sm">
+                                        <div className="overflow-x-auto">
+                                            <table className="w-full text-right text-xs">
+                                                <thead className="bg-customBg text-customMuted uppercase font-bold border-b border-customBorder">
+                                                    <tr>
+                                                        <th className="p-3">{t("userId")}</th>
+                                                        <th className="p-3">{t("clientName")}</th>
+                                                        <th className="p-3">{t("email")}</th>
+                                                        <th className="p-3">{t("role")}</th>
+                                                        <th className="p-3">{t("createdDate")}</th>
+                                                        <th className="p-3 text-center">{t("actions")}</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody className="divide-y divide-customBorder">
+                                                    {users.map(u => {
+                                                        let badgeClass = "bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300";
+                                                        if (u.role === "General Manager") badgeClass = "bg-rose-50 dark:bg-rose-950/20 text-rose-700 dark:text-rose-400 border border-rose-100 dark:border-rose-900";
+                                                        if (u.role === "Manager") badgeClass = "bg-blue-50 dark:bg-blue-950/20 text-blue-700 dark:text-blue-400 border border-blue-100 dark:border-blue-900";
+                                                        if (u.role === "Employee") badgeClass = "bg-emerald-50 dark:bg-emerald-950/20 text-emerald-700 dark:text-emerald-400 border border-emerald-100 dark:border-emerald-900";
+
+                                                        return (
+                                                            <tr key={u.id} className="hover:bg-customBg/80 transition-all">
+                                                                <td className="p-3 font-semibold text-customMuted font-sans">{u.id}</td>
+                                                                <td className="p-3 font-bold text-customText">{u.name}</td>
+                                                                <td className="p-3 font-sans text-customMuted">{u.email}</td>
+                                                                <td className="p-3">
+                                                                    <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${badgeClass}`}>
+                                                                        {u.role === "General Manager" ? t("roles.gm") : u.role === "Manager" ? t("roles.manager") : t("roles.employee")}
+                                                                    </span>
+                                                                </td>
+                                                                <td className="p-3 font-sans text-customMuted">{u.createdAt}</td>
+                                                                <td className="p-3">
+                                                                    <div className="flex justify-center gap-1.5">
+                                                                        <button
+                                                                            onClick={() => setUserModal({ isOpen: true, data: u })}
+                                                                            className="p-1.5 hover:bg-customBg rounded text-blue-600"
+                                                                        >
+                                                                            ✏️
+                                                                        </button>
+                                                                        <button
+                                                                            onClick={() => handleDeleteUser(u.id)}
+                                                                            className="p-1.5 hover:bg-rose-50 rounded text-rose-600"
+                                                                        >
+                                                                            🗑️
+                                                                        </button>
+                                                                    </div>
+                                                                </td>
+                                                            </tr>
+                                                        );
+                                                    })}
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+
+                            {}
+                            {currentModule === "settings" && (
+                                <div className="bg-customCard rounded-xl border border-customBorder p-6 shadow-sm max-w-2xl mx-auto space-y-6 theme-transition">
+                                    <h3 className="text-sm font-bold text-customText border-b border-customBorder pb-3">⚙️ {t("settings")}</h3>
+
+                                    <form onSubmit={(e) => { e.preventDefault(); showToast(t("saveSuccess")); }} className="space-y-6">
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+                                            <div className="flex flex-col gap-1.5">
+                                                <label className="font-bold text-customText">{t("companyName")}</label>
+                                                <input
+                                                    type="text"
+                                                    value={settings.companyName}
+                                                    onChange={(e) => setSettings({ ...settings, companyName: e.target.value })}
+                                                    className="border border-customBorder rounded-lg p-2 bg-customBg text-customText focus:ring-1 focus:ring-customPrimary"
+                                                    required
+                                                />
+                                            </div>
+
+                                            <div className="flex flex-col gap-1.5">
+                                                <label className="font-bold text-customText">{t("companyLogo")}</label>
+                                                <input
+                                                    type="file"
+                                                    accept="image/png"
+                                                    className="border border-customBorder rounded-lg p-1 text-[11px] bg-customBg text-customText"
+                                                />
+                                            </div>
+
+                                            <div className="flex flex-col gap-1.5 sm:col-span-2">
+                                                <label className="font-bold text-customText">{t("footerText")}</label>
+                                                <input
+                                                    type="text"
+                                                    maxLength="100"
+                                                    value={settings.footerText}
+                                                    onChange={(e) => setSettings({ ...settings, footerText: e.target.value })}
+                                                    className="border border-customBorder rounded-lg p-2 bg-customBg text-customText focus:ring-1 focus:ring-customPrimary"
+                                                />
+                                            </div>
+
+                                            <div className="flex flex-col gap-1.5">
+                                                <label className="font-bold text-customText">{t("language")}</label>
+                                                <select
+                                                    value={lang}
+                                                    onChange={(e) => setLang(e.target.value)}
+                                                    className="border border-customBorder rounded-lg p-2 bg-customBg text-customText"
+                                                >
+                                                    <option value="ar">العربية (Arabic RTL)</option>
+                                                    <option value="en">English (English LTR)</option>
+                                                </select>
+                                            </div>
+
+                                            {/* Presets dropdown selector */}
+                                            <div className="flex flex-col gap-1.5">
+                                                <label className="font-bold text-customText">{t("themePreset")}</label>
+                                                <select
+                                                    value={settings.themePreset}
+                                                    onChange={(e) => setSettings({ ...settings, themePreset: e.target.value })}
+                                                    className="border border-customBorder rounded-lg p-2 bg-customBg text-customText font-bold"
+                                                >
+                                                    <option value="oceanBlue">🔵 {t("oceanBlue")}</option>
+                                                    <option value="forestGreen">🟢 {t("forestGreen")}</option>
+                                                    <option value="sunsetOrange">🟠 {t("sunsetOrange")}</option>
+                                                    <option value="royalIndigo">🟣 {t("royalIndigo")}</option>
+                                                    <option value="crimsonRose">🔴 {t("crimsonRose")}</option>
+                                                    <option value="midnightGold">🟡 {t("midnightGold")}</option>
+                                                    <option value="customTheme">🎨 {t("customTheme")}</option>
+                                                </select>
+                                            </div>
+
+                                            {/* Dynamic color picker ONLY on Custom Theme */}
+                                            {settings.themePreset === "customTheme" && (
+                                                <div className="flex flex-col gap-1.5 sm:col-span-2 animate-fade-in bg-customBg/50 p-3 rounded-lg border border-customBorder">
+                                                    <label className="font-bold text-customText">{t("customColor")}</label>
+                                                    <div className="flex items-center gap-3">
+                                                        <input
+                                                            type="color"
+                                                            value={settings.customColor}
+                                                            onChange={(e) => setSettings({ ...settings, customColor: e.target.value })}
+                                                            className="w-12 h-10 border rounded cursor-pointer"
+                                                        />
+                                                        <span className="font-mono text-customText font-semibold">{settings.customColor}</span>
+                                                    </div>
+                                                </div>
+                                            )}
+                                        </div>
+
+                                        {/* Layout structure customization */}
+                                        <div className="space-y-3 pt-3 border-t border-customBorder text-xs">
+                                            <h4 className="font-bold text-customText">{t("layoutSelection")}</h4>
+                                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                                                {[
+                                                    { id: "sidebar", title: t("layoutSidebar"), desc: "شريط جانبي تقليدي لتسهيل التصفح" },
+                                                    { id: "topbar", title: t("layoutTopbar"), desc: "شريط علوي للمحترفين لتوفير مساحة قصوى" },
+                                                    { id: "compact", title: t("layoutCompact"), desc: "شريط جانبي مدمج مع تخطيط ضيق ذكي" }
+                                                ].map(item => (
+                                                    <button
+                                                        key={item.id}
+                                                        type="button"
+                                                        onClick={() => setLayoutMode(item.id)}
+                                                        className={`p-3 rounded-xl border text-right space-y-1 hover:bg-customBg/30 transition-all ${
+                                                            layoutMode === item.id 
+                                                                ? 'border-customPrimary ring-1 ring-customPrimary' 
+                                                                : 'border-customBorder'
+                                                        }`}
+                                                    >
+                                                        <p className="font-bold text-customText">{item.title}</p>
+                                                        <p className="text-[10px] text-customMuted">{item.desc}</p>
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        </div>
+
+                                        {/* Light/Dark selection option block */}
+                                        <div className="space-y-3 pt-3 border-t border-customBorder text-xs">
+                                            <h4 className="font-bold text-customText">مظهر الإضاءة</h4>
+                                            <div className="flex gap-4">
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setDarkMode(false)}
+                                                    className={`flex-1 py-3 px-4 rounded-xl border font-bold text-center transition-all ${
+                                                        !darkMode 
+                                                            ? 'border-customPrimary bg-white text-slate-900 shadow-sm' 
+                                                            : 'border-customBorder text-customMuted'
+                                                    }`}
+                                                >
+                                                    ☀️ {t("lightMode")}
+                                                </button>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setDarkMode(true)}
+                                                    className={`flex-1 py-3 px-4 rounded-xl border font-bold text-center transition-all ${
+                                                        darkMode 
+                                                            ? 'border-customPrimary bg-slate-800 text-white shadow-sm' 
+                                                            : 'border-customBorder text-customMuted'
+                                                    }`}
+                                                >
+                                                    🌙 {t("darkMode")}
+                                                </button>
+                                            </div>
+                                        </div>
+
+                                        <div className="pt-4 border-t border-customBorder flex justify-end">
+                                            <button
+                                                type="submit"
+                                                className="text-white font-bold text-xs px-6 py-2 rounded-lg hover:opacity-95 shadow bg-customPrimary"
+                                            >
+                                                {t("save")}
+                                            </button>
+                                        </div>
+                                    </form>
+                                </div>
+                            )}
+
+                        </div>
+                    </main>
+
+                    {}
+                    {clientModal.isOpen && (
+                        <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-fade-in">
+                            <div className="bg-customCard rounded-xl shadow-xl w-full max-w-lg overflow-hidden border border-customBorder">
+                                <div className="p-4 border-b border-customBorder flex justify-between items-center bg-customBg/50">
+                                    <h3 className="font-bold text-sm text-customText">
+                                        {clientModal.isDetail ? t("clientDetail") : clientModal.data ? t("edit") : t("add")}
+                                    </h3>
+                                    <button onClick={() => setClientModal({ isOpen: false, data: null, isDetail: false })} className="text-customMuted hover:text-customText text-lg">✕</button>
+                                </div>
+
+                                {clientModal.isDetail ? (
+                                    <div className="p-5 space-y-4 text-xs text-customText">
+                                        <div className="p-3 bg-customBg rounded-lg border border-customBorder flex flex-col gap-1">
+                                            <span className="font-bold text-customText text-sm">{clientModal.data.name}</span>
+                                            <span className="text-customMuted">📧 {clientModal.data.email} | 📱 {clientModal.data.mobile1}</span>
+                                            {clientModal.data.mobile2 && <span className="text-customMuted">📞 رقم بديل: {clientModal.data.mobile2}</span>}
+                                            <span className="text-customMuted mt-1">📍 {clientModal.data.address}</span>
+                                        </div>
+
+                                        <div className="space-y-2">
+                                            <h4 className="font-bold text-customText uppercase">المستحقات وحسابات المشاريع</h4>
+                                            <div className="grid grid-cols-3 gap-2 text-center">
+                                                <div className="p-2 rounded bg-customBg border border-customBorder">
+                                                    <span className="text-[10px] text-customMuted block">إجمالي المشاريع</span>
+                                                    <span className="font-bold text-customText">
+                                                        {projects.filter(p => p.clientId === clientModal.data.id).length}
+                                                    </span>
+                                                </div>
+                                                <div className="p-2 rounded bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-100 dark:border-emerald-900 text-emerald-700 dark:text-emerald-400">
+                                                    <span className="text-[10px] block">إجمالي المدفوع</span>
+                                                    <span className="font-bold">
+                                                        {transactions.filter(t => t.clientId === clientModal.data.id && t.type === "Deposit").reduce((sum, t) => sum + t.amount, 0).toLocaleString()} ج.م
+                                                    </span>
+                                                </div>
+                                                <div className="p-2 rounded bg-rose-50 dark:bg-rose-950/20 border border-rose-100 dark:border-rose-900 text-rose-700 dark:text-rose-400">
+                                                    <span className="text-[10px] block">المتبقي المطلوب</span>
+                                                    <span className="font-bold">
+                                                        {(projects.filter(p => p.clientId === clientModal.data.id).reduce((sum, p) => sum + p.cost, 0) - transactions.filter(t => t.clientId === clientModal.data.id && t.type === "Deposit").reduce((sum, t) => sum + t.amount, 0)).toLocaleString()} ج.م
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div className="flex justify-end pt-3 border-t border-customBorder">
+                                            <button 
+                                                onClick={() => setClientModal({ isOpen: false, data: null, isDetail: false })}
+                                                className="px-4 py-1.5 border border-customBorder rounded-lg hover:bg-customBg font-bold"
+                                            >
+                                                {t("cancel")}
+                                            </button>
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <form onSubmit={handleSaveClient} className="p-5 space-y-4 text-xs">
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                            <div className="flex flex-col gap-1 sm:col-span-2">
+                                                <label className="font-bold text-customText">{t("clientName")} *</label>
+                                                <input type="text" name="name" defaultValue={clientModal.data?.name} className="border border-customBorder bg-customBg text-customText rounded-lg p-2" required />
+                                            </div>
+                                            <div className="flex flex-col gap-1">
+                                                <label className="font-bold text-customText">{t("mobile1")} *</label>
+                                                <input type="text" name="mobile1" defaultValue={clientModal.data?.mobile1} className="border border-customBorder bg-customBg text-customText rounded-lg p-2" required />
+                                            </div>
+                                            <div className="flex flex-col gap-1">
+                                                <label className="font-bold text-customText">{t("mobile2")}</label>
+                                                <input type="text" name="mobile2" defaultValue={clientModal.data?.mobile2} className="border border-customBorder bg-customBg text-customText rounded-lg p-2" />
+                                            </div>
+                                            <div className="flex flex-col gap-1 sm:col-span-2">
+                                                <label className="font-bold text-customText">{t("email")}</label>
+                                                <input type="email" name="email" defaultValue={clientModal.data?.email} className="border border-customBorder bg-customBg text-customText rounded-lg p-2" />
+                                            </div>
+                                            <div className="flex flex-col gap-1 sm:col-span-2">
+                                                <label className="font-bold text-customText">{t("address")}</label>
+                                                <input type="text" name="address" defaultValue={clientModal.data?.address} className="border border-customBorder bg-customBg text-customText rounded-lg p-2" />
+                                            </div>
+                                        </div>
+
+                                        <div className="flex justify-end gap-2 pt-4 border-t border-customBorder">
+                                            <button type="button" onClick={() => setClientModal({ isOpen: false, data: null, isDetail: false })} className="px-4 py-2 border border-customBorder rounded-lg hover:bg-customBg font-bold text-customText">{t("cancel")}</button>
+                                            <button type="submit" className="text-white font-bold px-5 py-2 rounded-lg hover:opacity-95 bg-customPrimary">{t("save")}</button>
+                                        </div>
+                                    </form>
+                                )}
+                            </div>
+                        </div>
+                    )}
+
+                    {}
+                    {projectModal.isOpen && (
+                        <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-fade-in">
+                            <div className="bg-customCard rounded-xl shadow-xl w-full max-w-lg overflow-hidden border border-customBorder">
+                                <div className="p-4 border-b border-customBorder flex justify-between items-center bg-customBg/50">
+                                    <h3 className="font-bold text-sm text-customText">{projectModal.data ? t("edit") : t("add")}</h3>
+                                    <button onClick={() => setProjectModal({ isOpen: false, data: null })} className="text-customMuted hover:text-customText text-lg">✕</button>
+                                </div>
+
+                                <form onSubmit={handleSaveProject} className="p-5 space-y-4 text-xs">
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                        <div className="flex flex-col gap-1 sm:col-span-2">
+                                            <label className="font-bold text-customText">{t("projectName")} *</label>
+                                            <input type="text" name="name" defaultValue={projectModal.data?.name} className="border border-customBorder bg-customBg text-customText rounded-lg p-2" required />
+                                        </div>
+                                        <div className="flex flex-col gap-1">
+                                            <label className="font-bold text-customText">{t("category")} *</label>
+                                            <input type="text" name="category" defaultValue={projectModal.data?.category} className="border border-customBorder bg-customBg text-customText rounded-lg p-2" required />
+                                        </div>
+                                        <div className="flex flex-col gap-1">
+                                            <label className="font-bold text-customText">{t("selectClient")} *</label>
+                                            <select name="clientId" defaultValue={projectModal.data?.clientId} className="border border-customBorder bg-customBg text-customText rounded-lg p-2" required>
+                                                {clients.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                                            </select>
+                                        </div>
+                                        <div className="flex flex-col gap-1">
+                                            <label className="font-bold text-customText">{t("status")}</label>
+                                            <select name="status" defaultValue={projectModal.data?.status || "In Progress"} className="border border-customBorder bg-customBg text-customText rounded-lg p-2">
+                                                <option value="Completed">{t("statusCompleted")}</option>
+                                                <option value="In Progress">{t("statusInProgress")}</option>
+                                                <option value="Delayed">{t("statusDelayed")}</option>
+                                                <option value="Cancelled">{t("statusCancelled")}</option>
+                                            </select>
+                                        </div>
+                                        <div className="flex flex-col gap-1">
+                                            <label className="font-bold text-customText">{t("cost")} (EGP) *</label>
+                                            <input type="number" step="0.01" name="cost" defaultValue={projectModal.data?.cost} className="border border-customBorder bg-customBg text-customText rounded-lg p-2" required />
+                                        </div>
+                                        <div className="flex flex-col gap-1 sm:col-span-2">
+                                            <label className="font-bold text-customText">{t("details")}</label>
+                                            <textarea name="details" defaultValue={projectModal.data?.details} rows="3" className="border border-customBorder bg-customBg text-customText rounded-lg p-2"></textarea>
+                                        </div>
+                                    </div>
+
+                                    <div className="flex justify-end gap-2 pt-4 border-t border-customBorder">
+                                        <button type="button" onClick={() => setProjectModal({ isOpen: false, data: null })} className="px-4 py-2 border border-customBorder rounded-lg hover:bg-customBg font-bold text-customText">{t("cancel")}</button>
+                                        <button type="submit" className="text-white font-bold px-5 py-2 rounded-lg hover:opacity-95 bg-customPrimary">{t("save")}</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    )}
+
+                    {}
+                    {cashboxModal.isOpen && (
+                        <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-fade-in">
+                            <div className="bg-customCard rounded-xl shadow-xl w-full max-w-sm overflow-hidden border border-customBorder">
+                                <div className="p-4 border-b border-customBorder flex justify-between items-center bg-customBg/50">
+                                    <h3 className="font-bold text-sm text-customText">{cashboxModal.data ? t("edit") : t("add")}</h3>
+                                    <button onClick={() => setCashboxModal({ isOpen: false, data: null })} className="text-customMuted hover:text-customText text-lg">✕</button>
+                                </div>
+
+                                <form onSubmit={handleSaveCashbox} className="p-5 space-y-4 text-xs">
+                                    <div className="flex flex-col gap-1.5">
+                                        <label className="font-bold text-customText">{t("paymentMethod")} *</label>
+                                        <input 
+                                            type="text" 
+                                            name="paymentMethod" 
+                                            placeholder="مثال: البنك الأهلي، كاش، فودافون" 
+                                            defaultValue={cashboxModal.data?.paymentMethod} 
+                                            className="border border-customBorder bg-customBg text-customText rounded-lg p-2" 
+                                            required 
+                                        />
+                                    </div>
+
+                                    <div className="flex flex-col gap-1.5">
+                                        <label className="font-bold text-customText">{t("currentBalance")} ({t("optional")})</label>
+                                        <input 
+                                            type="text" 
+                                            value={cashboxModal.data ? cashboxModal.data.currentBalance.toLocaleString() : "يحسب تلقائياً من الإيداعات والسحوبات"} 
+                                            className="border border-customBorder bg-customBg text-customMuted rounded-lg p-2 font-bold" 
+                                            readOnly 
+                                        />
+                                    </div>
+
+                                    <div className="flex justify-end gap-2 pt-4 border-t border-customBorder">
+                                        <button type="button" onClick={() => setCashboxModal({ isOpen: false, data: null })} className="px-4 py-2 border border-customBorder rounded-lg hover:bg-customBg font-bold text-customText">{t("cancel")}</button>
+                                        <button type="submit" className="text-white font-bold px-5 py-2 rounded-lg hover:opacity-95 bg-customPrimary">{t("save")}</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    )}
+
+                    {}
+                    {transactionModal.isOpen && (
+                        <TransactionModalComponent
+                            isOpen={transactionModal.isOpen}
+                            data={transactionModal.data}
+                            clients={clients}
+                            projects={projects}
+                            cashboxes={cashboxes}
+                            onClose={() => setTransactionModal({ isOpen: false, data: null })}
+                            onSave={handleSaveTransaction}
+                            primaryColorHex={currentColors.primary}
+                            t={t}
+                        />
+                    )}
+
+                    {}
+                    {userModal.isOpen && (
+                        <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-fade-in">
+                            <div className="bg-customCard rounded-xl shadow-xl w-full max-w-sm overflow-hidden border border-customBorder">
+                                <div className="p-4 border-b border-customBorder flex justify-between items-center bg-customBg/50">
+                                    <h3 className="font-bold text-sm text-customText">{userModal.data ? t("edit") : t("add")}</h3>
+                                    <button onClick={() => setUserModal({ isOpen: false, data: null })} className="text-customMuted hover:text-customText text-lg">✕</button>
+                                </div>
+
+                                <form onSubmit={handleSaveUser} className="p-5 space-y-4 text-xs">
+                                    <div className="flex flex-col gap-1">
+                                        <label className="font-bold text-customText">{t("clientName")} *</label>
+                                        <input type="text" name="name" defaultValue={userModal.data?.name} className="border border-customBorder bg-customBg text-customText rounded-lg p-2" required />
+                                    </div>
+                                    <div className="flex flex-col gap-1">
+                                        <label className="font-bold text-customText">{t("email")} *</label>
+                                        <input type="email" name="email" defaultValue={userModal.data?.email} className="border border-customBorder bg-customBg text-customText rounded-lg p-2" required />
+                                    </div>
+                                    <div className="flex flex-col gap-1">
+                                        <label className="font-bold text-customText">{t("password")} *</label>
+                                        <input type="password" name="password" placeholder="••••••••" className="border border-customBorder bg-customBg text-customText rounded-lg p-2" required={!userModal.data} />
+                                    </div>
+                                    <div className="flex flex-col gap-1">
+                                        <label className="font-bold text-customText">{t("role")}</label>
+                                        <select name="role" defaultValue={userModal.data?.role || "Employee"} className="border border-customBorder bg-customBg text-customText rounded-lg p-2">
+                                            <option value="General Manager">{t("roles.gm")}</option>
+                                            <option value="Manager">{t("roles.manager")}</option>
+                                            <option value="Employee">{t("roles.employee")}</option>
+                                        </select>
+                                    </div>
+
+                                    <div className="flex justify-end gap-2 pt-4 border-t border-customBorder">
+                                        <button type="button" onClick={() => setUserModal({ isOpen: false, data: null })} className="px-4 py-2 border border-customBorder rounded-lg hover:bg-customBg font-bold text-customText">{t("cancel")}</button>
+                                        <button type="submit" className="text-white font-bold px-5 py-2 rounded-lg hover:opacity-95 bg-customPrimary">{t("save")}</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* PDF Export Overlay Loading Animation */}
+                    {exporting && (
+                        <div className="fixed inset-0 bg-slate-900/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+                            <div className="bg-customCard rounded-xl shadow-2xl p-6 text-center space-y-4 max-w-sm border border-customBorder">
+                                <span className="text-4xl animate-spin block text-customPrimary">⚙️</span>
+                                <h3 className="font-bold text-customText text-sm">{t("generatingPdf")}</h3>
+                                <p className="text-xs text-customMuted">تجهيز التقرير، المحاذاة، الجداول، والمؤشرات المالية لتتوافق مع معيار الطباعة الموحد.</p>
+                                <div className="w-full bg-customBg rounded-full h-1.5">
+                                    <div className="h-1.5 rounded-full animate-pulse bg-customPrimary" style={{ width: '80%' }}></div>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                </div>
+            );
+        }
+
+        function TransactionModalComponent({ isOpen, data, clients, projects, cashboxes, onClose, onSave, primaryColorHex, t }) {
+            const [selectedType, setSelectedType] = useState(data?.type || "Deposit");
+            const [selectedClient, setSelectedClient] = useState(data?.clientId || "");
+            
+            const filteredProjs = useMemo(() => {
+                if (!selectedClient) return [];
+                return projects.filter(p => p.clientId === parseInt(selectedClient));
+            }, [selectedClient, projects]);
+
+            return (
+                <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-fade-in">
+                    <div className="bg-customCard rounded-xl shadow-xl w-full max-w-lg overflow-hidden border border-customBorder">
+                        <div className="p-4 border-b border-customBorder flex justify-between items-center bg-customBg/50">
+                            <h3 className="font-bold text-sm text-customText">{data ? t("edit") : t("add")}</h3>
+                            <button onClick={onClose} type="button" className="text-customMuted hover:text-customText text-lg">✕</button>
+                        </div>
+
+                        <form onSubmit={onSave} className="p-5 space-y-4 text-xs">
+                            <div className="flex flex-col gap-1.5">
+                                <label className="font-bold text-customText">{t("transactionType")} *</label>
+                                <div className="grid grid-cols-3 gap-1 bg-customBg p-1 rounded-lg border border-customBorder">
+                                    {[
+                                        { id: "Deposit", label: t("deposit") },
+                                        { id: "Withdraw", label: t("withdraw") },
+                                        { id: "Transfer", label: t("transfer") }
+                                    ].map(type => (
+                                        <button
+                                            key={type.id}
+                                            type="button"
+                                            onClick={() => setSelectedType(type.id)}
+                                            className={`py-1.5 rounded-md font-bold text-center transition-all ${
+                                                selectedType === type.id 
+                                                    ? 'bg-customPrimary text-white shadow' 
+                                                    : 'text-customMuted hover:text-customText'
+                                            }`}
+                                        >
+                                            <input type="radio" name="type" value={type.id} checked={selectedType === type.id} readOnly className="hidden" />
+                                            {type.label}
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <div className="flex flex-col gap-1">
+                                    <label className="font-bold text-customText">{t("amount")} (EGP) *</label>
+                                    <input type="number" step="0.01" name="amount" defaultValue={data?.amount} className="border border-customBorder bg-customBg text-customText rounded-lg p-2" required />
+                                </div>
+
+                                <div className="flex flex-col gap-1">
+                                    <label className="font-bold text-customText">
+                                        {selectedType === "Transfer" ? t("fromCashbox") : t("cashbox")} *
+                                    </label>
+                                    <select name="cashboxId" defaultValue={data?.cashboxId} className="border border-customBorder bg-customBg text-customText rounded-lg p-2" required>
+                                        <option value="">{t("cashbox")}</option>
+                                        {cashboxes.map(b => <option key={b.id} value={b.id}>{b.paymentMethod}</option>)}
+                                    </select>
+                                </div>
+
+                                {selectedType === "Transfer" && (
+                                    <div className="flex flex-col gap-1 sm:col-span-2 animate-fade-in">
+                                        <label className="font-bold text-customText">{t("toCashbox")} *</label>
+                                        <select name="toCashboxId" defaultValue={data?.toCashboxId} className="border border-customBorder bg-customBg text-customText rounded-lg p-2" required>
+                                            <option value="">{t("toCashbox")}</option>
+                                            {cashboxes.map(b => <option key={b.id} value={b.id}>{b.paymentMethod}</option>)}
+                                        </select>
+                                    </div>
+                                )}
+
+                                {selectedType === "Deposit" && (
+                                    <>
+                                        <div className="flex flex-col gap-1 sm:col-span-2 animate-fade-in">
+                                            <label className="font-bold text-customText">{t("client")} ({t("optional")})</label>
+                                            <select 
+                                                name="clientId" 
+                                                value={selectedClient} 
+                                                onChange={(e) => setSelectedClient(e.target.value)} 
+                                                className="border border-customBorder bg-customBg text-customText rounded-lg p-2"
+                                            >
+                                                <option value="">{t("selectClient")}</option>
+                                                {clients.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                                            </select>
+                                        </div>
+
+                                        {selectedClient && (
+                                            <div className="flex flex-col gap-1 sm:col-span-2 animate-fade-in">
+                                                <label className="font-bold text-customText">{t("project")} ({t("optional")})</label>
+                                                <select name="projectId" defaultValue={data?.projectId} className="border border-customBorder bg-customBg text-customText rounded-lg p-2">
+                                                    <option value="">{t("project")}</option>
+                                                    {filteredProjs.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+                                                </select>
+                                            </div>
+                                        )}
+                                    </>
+                                )}
+
+                                <div className="flex flex-col gap-1 sm:col-span-2">
+                                    <label className="font-bold text-customText">{t("notes")}</label>
+                                    <input type="text" name="notes" defaultValue={data?.notes} className="border border-customBorder bg-customBg text-customText rounded-lg p-2" />
+                                </div>
+                            </div>
+
+                            <div className="flex justify-end gap-2 pt-4 border-t border-customBorder">
+                                <button type="button" onClick={onClose} className="px-4 py-2 border border-customBorder rounded-lg hover:bg-customBg font-bold text-customText">{t("cancel")}</button>
+                                <button type="submit" className="text-white font-bold px-5 py-2 rounded-lg hover:opacity-95 bg-customPrimary">{t("save")}</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            );
+        }
+
+        // Render React Application
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
