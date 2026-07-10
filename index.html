@@ -1,0 +1,1402 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl" class="h-full scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>الوكيل المستقل المحمول | Freelance Agent Mobile Cockpit</title>
+    
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Google Fonts: Cairo (Arabic) & Inter (English) -->
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800;900&family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Animate.css for superb mobile micro-animations -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
+
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        primary: 'var(--primary)',
+                        primaryHover: 'var(--primary-hover)',
+                        primaryLight: 'var(--primary-light)',
+                        bgMain: 'var(--bg-main)',
+                        bgCard: 'var(--bg-card)',
+                        textMain: 'var(--text-main)',
+                        textMuted: 'var(--text-muted)',
+                        borderColor: 'var(--border-color)',
+                        bgHeader: 'var(--bg-header)',
+                    },
+                    fontFamily: {
+                        sans: ['Cairo', 'Inter', 'sans-serif'],
+                    },
+                    animation: {
+                        'bounce-slow': 'bounce 3s infinite',
+                        'slide-up': 'slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
+                        'fade-in': 'fadeIn 0.2s ease-out'
+                    },
+                    keyframes: {
+                        slideUp: {
+                            '0%': { transform: 'translateY(100%)' },
+                            '100%': { transform: 'translateY(0)' }
+                        },
+                        fadeIn: {
+                            '0%': { opacity: '0' },
+                            '100%': { opacity: '1' }
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <style>
+        :root {
+            --primary: #0284c7;
+            --primary-hover: #0369a1;
+            --primary-light: #e0f2fe;
+            --bg-main: #f1f5f9;
+            --bg-card: #ffffff;
+            --bg-header: #ffffff;
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+            --border-color: #e2e8f0;
+        }
+
+        body {
+            font-family: 'Cairo', 'Inter', sans-serif;
+            background-color: var(--bg-main);
+            color: var(--text-main);
+            -webkit-tap-highlight-color: transparent;
+            user-select: none;
+            overflow-x: hidden;
+        }
+
+        /* Hide Scrollbar for clean mobile feel */
+        ::-webkit-scrollbar {
+            display: none;
+        }
+
+        /* Glassmorphism Navigation Bar Effect */
+        .glass-nav {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+        }
+        
+        .dark .glass-nav {
+            background: rgba(15, 23, 42, 0.85);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+        }
+
+        /* Dynamic fluid cards with active tap feedback */
+        .mobile-tap-card:active {
+            transform: scale(0.97);
+            transition: transform 0.1s ease-in-out;
+        }
+
+        /* Safe margins for devices with notches (iOS Safe Areas) */
+        .pb-safe {
+            padding-bottom: calc(1.5rem + env(safe-area-inset-bottom));
+        }
+        .pt-safe {
+            padding-top: calc(1rem + env(safe-area-inset-top));
+        }
+    </style>
+</head>
+<body class="h-full antialiased overflow-hidden select-none">
+    <div id="root" class="h-full flex flex-col"></div>
+
+    <!-- React and ReactDOM CDNs -->
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+    <!-- Babel CDN for inline JSX compilation -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    <script type="text/babel">
+        const { useState, useMemo, useEffect } = React;
+
+        // Translation dictionary for seamless LTR/RTL Switching
+        const translations = {
+            ar: {
+                appName: "الوكيل المستقل",
+                subTitle: "لوحة التحكم المالية للمحمول",
+                dashboard: "الرئيسية",
+                clients: "العملاء",
+                projects: "المشاريع",
+                cashboxes: "الصناديق",
+                transactions: "الحركات",
+                reports: "التقرير المالي",
+                users: "الموظفين",
+                settings: "الإعدادات",
+                
+                // Dark/Light Layouts
+                darkMode: "الوضع الداكن",
+                lightMode: "الوضع المضيء",
+                themeSelection: "ألوان الواجهة",
+                layoutSelection: "ترتيب القوائم",
+
+                // KPIs
+                totalCollected: "المقبوضات",
+                totalWithdrawn: "المسحوبات",
+                netTotal: "الصافي العام",
+                topClient: "العميل الأكثر قيمة",
+                totalProjects: "إجمالي المشاريع",
+                completedProjects: "مكتملة",
+                inProgressProjects: "جاري تنفيذها",
+                delayedProjects: "مؤجلة / ملغية",
+                
+                // UI Widgets
+                periodFilter: "الفترة",
+                currentMonth: "الشهر",
+                allTime: "الكل",
+                customRange: "مخصص",
+                incomeTrend: "مؤشر تدفقات الإيرادات النقدية",
+                outstandingBalances: "المستحقات المعلقة للعملاء",
+                addPayment: "تسجيل دفعة سريعة",
+                egp: "ج.م",
+                client: "العميل",
+                project: "المشروع",
+                remaining: "المتبقي المطلوب",
+                paid: "المدفوع المستلم",
+                cost: "التكلفة الكلية",
+                status: "الحالة",
+                details: "التفاصيل",
+                actions: "الإجراءات",
+                noOutstanding: "لا توجد مستحقات معلقة حالياً.",
+
+                // Shared Controls
+                search: "ابحث هنا...",
+                filter: "تصفية",
+                add: "إضافة جديد",
+                edit: "تعديل",
+                delete: "حذف",
+                save: "حفظ",
+                cancel: "إلغاء",
+                exportPdf: "تصدير للطباعة",
+                createdDate: "تاريخ الإنشاء",
+                all: "الكل",
+
+                // Modals & Details
+                clientId: "كود العميل",
+                clientName: "اسم العميل",
+                mobile1: "الموبايل الأساسي",
+                mobile2: "الموبايل البديل",
+                email: "البريد الإلكتروني",
+                address: "العنوان بالكامل",
+                projectsCount: "عدد المشاريع",
+                clientDetail: "تفاصيل حساب العميل",
+
+                // Projects
+                projectId: "كود المشروع",
+                projectName: "اسم المشروع",
+                category: "التصنيف",
+                selectClient: "اختر العميل المعني",
+                statusCompleted: "تم الاكتمال",
+                statusInProgress: "جاري التنفيذ",
+                statusDelayed: "مؤجل",
+                statusCancelled: "ملغي",
+
+                // Cashbox
+                cashboxId: "رقم الحساب",
+                paymentMethod: "قناة الدفع / البنك",
+                currentBalance: "الرصيد الحالي",
+
+                // Transactions
+                movementNo: "رقم العملية",
+                transactionType: "نوع العملية",
+                deposit: "إيداع (+)",
+                withdraw: "سحب (-)",
+                transfer: "تحويل مالي بين الحسابات",
+                amount: "المبلغ",
+                notes: "ملاحظات الحركة",
+                cashbox: "الصندوق",
+                fromCashbox: "من حساب",
+                toCashbox: "إلى حساب",
+                optional: "اختياري",
+                validationSameBox: "خطأ: لا يمكن التحويل لنفس الحساب!",
+                validationNegative: "خطأ: يجب إدخال قيمة أكبر من الصفر!",
+
+                // Settings
+                companyName: "اسم المؤسسة / المستقل",
+                footerText: "نص التذييل للتقارير المطبوعة",
+                language: "اللغة الافتراضية",
+                themePreset: "السمة والنسق الملون",
+                customColor: "لون مخصص مميز",
+                oceanBlue: "أزرق هادئ",
+                forestGreen: "أخضر الغابة",
+                sunsetOrange: "برتقالي متوهج",
+                royalIndigo: "أرجواني ملكي",
+                crimsonRose: "قرمزي ناري",
+                midnightGold: "الذهبي الملكي",
+                customTheme: "تخصيص كامل للألوان",
+
+                // Notifications
+                saveSuccess: "تم الحفظ بنجاح في الهاتف!",
+                deleteSuccess: "تم الحذف بنجاح!",
+                invalidForm: "يرجى تعبئة الحقول المطلوبة بشكل صحيح."
+            },
+            en: {
+                appName: "FreelancePro",
+                subTitle: "Mobile Financial Cockpit",
+                dashboard: "Home",
+                clients: "Clients",
+                projects: "Projects",
+                cashboxes: "Cashboxes",
+                transactions: "Txns",
+                reports: "Reports",
+                users: "Staff",
+                settings: "Settings",
+
+                darkMode: "Dark Mode",
+                lightMode: "Light Mode",
+                themeSelection: "App Accent",
+                layoutSelection: "Navigation Layout",
+
+                totalCollected: "Collected",
+                totalWithdrawn: "Withdrawn",
+                netTotal: "Net Balance",
+                topClient: "Top Client",
+                totalProjects: "Total Projects",
+                completedProjects: "Completed",
+                inProgressProjects: "Active",
+                delayedProjects: "Delayed",
+
+                periodFilter: "Period",
+                currentMonth: "Current Month",
+                allTime: "All Time",
+                customRange: "Custom",
+                incomeTrend: "Revenue Cashflow Indicator",
+                outstandingBalances: "Outstanding Unpaid Amounts",
+                addPayment: "Record Payment",
+                egp: "EGP",
+                client: "Client",
+                project: "Project",
+                remaining: "Remaining",
+                paid: "Paid",
+                cost: "Total Budget",
+                status: "Status",
+                details: "Details",
+                actions: "Actions",
+                noOutstanding: "No pending outstanding balances.",
+
+                search: "Search here...",
+                filter: "Filter",
+                add: "Add New",
+                edit: "Edit",
+                delete: "Delete",
+                save: "Save",
+                cancel: "Cancel",
+                exportPdf: "Export Report",
+                createdDate: "Date Created",
+                all: "All",
+
+                clientId: "Client ID",
+                clientName: "Client Name",
+                mobile1: "Mobile 1",
+                mobile2: "Mobile 2",
+                email: "Email Address",
+                address: "Full Address",
+                projectsCount: "Projects",
+                clientDetail: "Client Financial Ledger",
+
+                projectId: "Project ID",
+                projectName: "Project Name",
+                category: "Category",
+                selectClient: "Select Client",
+                statusCompleted: "Completed",
+                statusInProgress: "In Progress",
+                statusDelayed: "Delayed",
+                statusCancelled: "Cancelled",
+
+                cashboxId: "Box ID",
+                paymentMethod: "Payment Method",
+                currentBalance: "Current Balance",
+
+                movementNo: "Txn No",
+                transactionType: "Type",
+                deposit: "Deposit (+)",
+                withdraw: "Withdraw (-)",
+                transfer: "Transfer (+/-)",
+                amount: "Amount",
+                notes: "Notes",
+                cashbox: "Cashbox",
+                fromCashbox: "From Account",
+                toCashbox: "To Account",
+                optional: "Optional",
+                validationSameBox: "Error: Source and Target boxes must differ!",
+                validationNegative: "Amount must be strictly positive!",
+
+                companyName: "Freelancer / Company Name",
+                footerText: "Footer Text for Reports",
+                language: "Default Language",
+                themePreset: "Accent Palette Theme",
+                customColor: "Custom Accent Color",
+                oceanBlue: "Ocean Blue",
+                forestGreen: "Forest Green",
+                sunsetOrange: "Sunset Glow",
+                royalIndigo: "Royal Indigo",
+                crimsonRose: "Crimson Flame",
+                midnightGold: "Midnight Gold",
+                customTheme: "Custom Specific Theme",
+
+                saveSuccess: "Saved securely to phone storage!",
+                deleteSuccess: "Successfully removed!",
+                invalidForm: "Please check form requirements."
+            }
+        };
+
+        const themePresets = {
+            oceanBlue: { primary: "#0284c7", hover: "#0369a1", light: "#e0f2fe" },
+            forestGreen: { primary: "#10b981", hover: "#059669", light: "#d1fae5" },
+            sunsetOrange: { primary: "#f97316", hover: "#ea580c", light: "#ffedd5" },
+            royalIndigo: { primary: "#6366f1", hover: "#4f46e5", light: "#e0e7ff" },
+            crimsonRose: { primary: "#f43f5e", hover: "#e11d48", light: "#ffe4e6" },
+            midnightGold: { primary: "#eab308", hover: "#ca8a04", light: "#fef3c7" }
+        };
+
+        // Static Local Mock Databases
+        const initialClients = [
+            { id: 101, name: "م. محمد الشريف - إعمار مصر", mobile1: "01002345678", mobile2: "01223456789", email: "elsharif@emaar.com", address: "شارع الـ 90، التجمع الخامس، القاهرة", createdAt: "2026-03-01" },
+            { id: 102, name: "مؤسسة سمارت هوم للديكور", mobile1: "01144556677", mobile2: "", email: "info@smarthome.eg", address: "الدقي، خلف مجلس الدولة، الجيزة", createdAt: "2026-04-10" },
+            { id: 103, name: "د. هدى محمود - عيادات رويال", mobile1: "01599887766", mobile2: "01009988776", email: "hoda@royal-clinics.com", address: "زيزينيا، شارع أبو قير، الإسكندرية", createdAt: "2026-05-15" }
+        ];
+
+        const initialProjects = [
+            { id: 201, name: "تصميم موقع حجز العيادات بالكامل", category: "Web Apps", clientId: 103, status: "In Progress", cost: 180000, details: "بناء نظام متكامل لحجز مواعيد الأطباء لـ 4 عيادات تخصصية.", createdAt: "2026-05-18" },
+            { id: 202, name: "حملة التسويق العقاري الرقمي", category: "Marketing", clientId: 101, status: "Completed", cost: 95000, details: "إدارة إعلانات فيسبوك وإنستجرام وتيك توك الترويجية.", createdAt: "2026-03-05" },
+            { id: 203, name: "إعادة رسم وتطوير الهوية البصرية", category: "Branding", clientId: 102, status: "Delayed", cost: 40000, details: "تصميم الشعار ومطبوعات المكاتب والكتيب الإرشادي للعلامة.", createdAt: "2026-04-15" }
+        ];
+
+        const initialCashboxes = [
+            { id: 1, paymentMethod: "حساب البنك التجاري CIB", baseBalance: 500000, createdAt: "2026-01-01" },
+            { id: 2, paymentMethod: "إنستاباي Instapay", baseBalance: 40000, createdAt: "2026-01-01" },
+            { id: 3, paymentMethod: "فودافون كاش", baseBalance: 15000, createdAt: "2026-01-01" },
+            { id: 4, paymentMethod: "نقدية بالخزنة اليدوية", baseBalance: 5000, createdAt: "2026-01-01" }
+        ];
+
+        const initialTransactions = [
+            { id: 1001, type: "Deposit", amount: 95000, notes: "المسدد بالكامل لحملة إعمار مصر العقارية", cashboxId: 1, clientId: 101, projectId: 202, toCashboxId: null, createdAt: "2026-03-05" },
+            { id: 1002, type: "Deposit", amount: 60000, notes: "مقدم تعاقد موقع عيادات رويال", cashboxId: 2, clientId: 103, projectId: 201, toCashboxId: null, createdAt: "2026-05-18" },
+            { id: 1003, type: "Withdraw", amount: 8000, notes: "تجديد اشتراك استضافة وسيرفر تجريبي للعملاء", cashboxId: 2, clientId: null, projectId: null, toCashboxId: null, createdAt: "2026-05-25" },
+            { id: 1004, type: "Transfer", amount: 5000, notes: "تغذية خزينة النقدية اليدوية من محفظة فودافون كاش", cashboxId: 3, clientId: null, projectId: null, toCashboxId: 4, createdAt: "2026-06-01" }
+        ];
+
+        function App() {
+            const [currentModule, setCurrentModule] = useState("dashboard"); // Options: dashboard, clients, projects, cashboxes, transactions, reports, settings
+            const [lang, setLang] = useState("ar");
+            const [darkMode, setDarkMode] = useState(false);
+            
+            // Global customizer state
+            const [settings, setSettings] = useState({
+                companyName: "الوكيل لتقنية المعلومات",
+                footerText: "نظام الوكيل المالي المحمول v4.5 | تصميم ريسبونسيف احترافي",
+                themePreset: "oceanBlue",
+                customColor: "#10b981"
+            });
+
+            // Local DB hooks
+            const [clients, setClients] = useState(initialClients);
+            const [projects, setProjects] = useState(initialProjects);
+            const [cashboxes, setCashboxes] = useState(initialCashboxes);
+            const [transactions, setTransactions] = useState(initialTransactions);
+
+            // Searching & Filters
+            const [globalSearch, setGlobalSearch] = useState("");
+            const [activeFilter, setActiveFilter] = useState("all"); // For filtering lists
+            const [notification, setNotification] = useState(null);
+
+            // Bottom Sheets / Mobile Modals States
+            const [quickActionMenu, setQuickActionMenu] = useState(false);
+            const [clientModal, setClientModal] = useState({ isOpen: false, data: null, isDetail: false });
+            const [projectModal, setProjectModal] = useState({ isOpen: false, data: null });
+            const [cashboxModal, setCashboxModal] = useState({ isOpen: false, data: null });
+            const [transactionModal, setTransactionModal] = useState({ isOpen: false, data: null });
+
+            // Toast Alert display
+            const showToast = (message) => {
+                setNotification(message);
+                setTimeout(() => setNotification(null), 3000);
+            };
+
+            const t = (key) => translations[lang][key] || key;
+
+            const currentColors = useMemo(() => {
+                if (settings.themePreset === "customTheme") {
+                    return {
+                        primary: settings.customColor,
+                        hover: settings.customColor,
+                        light: settings.customColor + "22"
+                    };
+                }
+                return themePresets[settings.themePreset] || themePresets.oceanBlue;
+            }, [settings.themePreset, settings.customColor]);
+
+            // Syncing layout changes, theme colors, and Dark Mode dynamically
+            useEffect(() => {
+                const root = document.documentElement;
+                root.style.setProperty('--primary', currentColors.primary);
+                root.style.setProperty('--primary-hover', currentColors.hover);
+                root.style.setProperty('--primary-light', currentColors.light);
+
+                if (darkMode) {
+                    root.classList.add('dark');
+                    root.style.setProperty('--bg-main', '#0f172a');
+                    root.style.setProperty('--bg-card', '#1e293b');
+                    root.style.setProperty('--bg-header', '#1e293b');
+                    root.style.setProperty('--text-main', '#f8fafc');
+                    root.style.setProperty('--text-muted', '#94a3b8');
+                    root.style.setProperty('--border-color', '#334155');
+                } else {
+                    root.classList.remove('dark');
+                    root.style.setProperty('--bg-main', '#f1f5f9');
+                    root.style.setProperty('--bg-card', '#ffffff');
+                    root.style.setProperty('--bg-header', '#ffffff');
+                    root.style.setProperty('--text-main', '#0f172a');
+                    root.style.setProperty('--text-muted', '#64748b');
+                    root.style.setProperty('--border-color', '#e2e8f0');
+                }
+            }, [darkMode, currentColors]);
+
+            // Sync document language direction
+            useEffect(() => {
+                const htmlEl = document.documentElement;
+                htmlEl.setAttribute("dir", lang === "ar" ? "rtl" : "ltr");
+                htmlEl.setAttribute("lang", lang);
+            }, [lang]);
+
+            // Calculated Properties for Live Balances and Financial Metrics
+            const computedProjects = useMemo(() => {
+                return projects.map(proj => {
+                    const projectDeposits = transactions
+                        .filter(t => t.projectId === proj.id && t.type === "Deposit")
+                        .reduce((sum, t) => sum + t.amount, 0);
+                    return {
+                        ...proj,
+                        paid: projectDeposits,
+                        remaining: Math.max(0, proj.cost - projectDeposits)
+                    };
+                });
+            }, [projects, transactions]);
+
+            const computedCashboxes = useMemo(() => {
+                return cashboxes.map(box => {
+                    const deposits = transactions.filter(t => t.type === "Deposit" && t.cashboxId === box.id).reduce((sum, t) => sum + t.amount, 0);
+                    const withdrawals = transactions.filter(t => t.type === "Withdraw" && t.cashboxId === box.id).reduce((sum, t) => sum + t.amount, 0);
+                    const transfersIn = transactions.filter(t => t.type === "Transfer" && t.toCashboxId === box.id).reduce((sum, t) => sum + t.amount, 0);
+                    const transfersOut = transactions.filter(t => t.type === "Transfer" && t.cashboxId === box.id).reduce((sum, t) => sum + t.amount, 0);
+                    return {
+                        ...box,
+                        currentBalance: box.baseBalance + deposits + transfersIn - withdrawals - transfersOut
+                    };
+                });
+            }, [cashboxes, transactions]);
+
+            const financials = useMemo(() => {
+                const totalCollected = transactions.filter(t => t.type === "Deposit").reduce((sum, t) => sum + t.amount, 0);
+                const totalWithdrawn = transactions.filter(t => t.type === "Withdraw").reduce((sum, t) => sum + t.amount, 0);
+                const outstanding = computedProjects.reduce((sum, p) => sum + p.remaining, 0);
+                return {
+                    totalCollected,
+                    totalWithdrawn,
+                    net: totalCollected - totalWithdrawn,
+                    outstanding
+                };
+            }, [transactions, computedProjects]);
+
+            // CRUD Handlers with mobile toast confirmations
+            const handleAddClient = (client) => {
+                setClients([client, ...clients]);
+                showToast(t("saveSuccess"));
+            };
+
+            const handleUpdateClient = (id, updatedClient) => {
+                setClients(clients.map(c => c.id === id ? updatedClient : c));
+                showToast(t("saveSuccess"));
+            };
+
+            const handleDeleteClient = (id) => {
+                setClients(clients.filter(c => c.id !== id));
+                showToast(t("deleteSuccess"));
+            };
+
+            const handleAddProject = (proj) => {
+                setProjects([proj, ...projects]);
+                showToast(t("saveSuccess"));
+            };
+
+            const handleUpdateProject = (id, updatedProj) => {
+                setProjects(projects.map(p => p.id === id ? updatedProj : p));
+                showToast(t("saveSuccess"));
+            };
+
+            const handleDeleteProject = (id) => {
+                setProjects(projects.filter(p => p.id !== id));
+                showToast(t("deleteSuccess"));
+            };
+
+            const handleAddTransaction = (tx) => {
+                setTransactions([tx, ...transactions]);
+                showToast(t("saveSuccess"));
+            };
+
+            const handleUpdateTransaction = (id, updatedTx) => {
+                setTransactions(transactions.map(t => t.id === id ? updatedTx : t));
+                showToast(t("saveSuccess"));
+            };
+
+            const handleDeleteTransaction = (id) => {
+                setTransactions(transactions.filter(t => t.id !== id));
+                showToast(t("deleteSuccess"));
+            };
+
+            return (
+                <div className="h-full flex flex-col justify-between overflow-hidden bg-bgMain text-textMain relative pb-safe">
+                    
+                    {}
+                    <header className="glass-nav border-b border-borderColor pt-safe px-5 pb-3 flex items-center justify-between sticky top-0 z-40 shadow-sm">
+                        <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-full flex items-center justify-center font-extrabold text-white text-base shadow-md bg-primary animate-pulse">
+                                <i className="fa-solid fa-feather-pointed"></i>
+                            </div>
+                            <div>
+                                <h1 className="text-sm font-bold tracking-tight text-textMain">{settings.companyName || t("appName")}</h1>
+                                <p className="text-[10px] text-textMuted font-medium">{t("subTitle")}</p>
+                            </div>
+                        </div>
+
+                        <div className="flex items-center gap-2">
+                            {/* Theme Quick Toggle */}
+                            <button 
+                                onClick={() => setDarkMode(!darkMode)}
+                                className="w-9 h-9 rounded-full bg-slate-100 dark:bg-slate-800 text-amber-500 dark:text-amber-400 flex items-center justify-center transition-all shadow-sm active:scale-90"
+                            >
+                                <i className={`fa-solid ${darkMode ? "fa-sun" : "fa-moon"} text-sm`}></i>
+                            </button>
+                            
+                            {/* Lang Quick Toggle */}
+                            <button 
+                                onClick={() => setLang(lang === "ar" ? "en" : "ar")}
+                                className="w-9 h-9 rounded-full bg-slate-100 dark:bg-slate-800 text-xs font-bold text-primary flex items-center justify-center transition-all shadow-sm active:scale-90"
+                            >
+                                {lang === "ar" ? "EN" : "عربي"}
+                            </button>
+                        </div>
+                    </header>
+
+                    {/* Toast Notification Box */}
+                    {notification && (
+                        <div className="fixed top-20 left-1/2 -translate-x-1/2 z-50 bg-slate-900 text-white dark:bg-white dark:text-slate-900 px-4 py-2.5 rounded-full text-xs font-bold shadow-xl flex items-center gap-2 border border-slate-800 dark:border-slate-100 animate__animated animate__fadeInDown animate__faster">
+                            <i className="fa-solid fa-circle-check text-emerald-500 text-sm"></i>
+                            <span>{notification}</span>
+                        </div>
+                    )}
+
+                    {}
+                    <div className="flex-1 overflow-y-auto px-4 py-3 space-y-4">
+                        
+                        {/* MODULE 1: MOBILE COMPACT DASHBOARD */}
+                        {currentModule === "dashboard" && (
+                            <div className="space-y-4 animate__animated animate__fadeIn animate__faster">
+                                
+                                {/* Period selection block */}
+                                <div className="flex items-center justify-between bg-bgCard p-2 rounded-2xl border border-borderColor shadow-sm">
+                                    <span className="text-xs font-bold text-textMuted px-2">{t("periodFilter")}:</span>
+                                    <div className="flex gap-1">
+                                        {["allTime", "currentMonth"].map(filterVal => (
+                                            <button
+                                                key={filterVal}
+                                                onClick={() => setActiveFilter(filterVal)}
+                                                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
+                                                    activeFilter === filterVal ? "bg-primary text-white shadow-sm" : "text-textMuted"
+                                                }`}
+                                            >
+                                                {t(filterVal)}
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+
+                                {/* High-Fidelity Mobile Grid Metrics */}
+                                <div className="grid grid-cols-2 gap-3">
+                                    <div className="bg-bgCard p-3.5 rounded-2xl border-r-4 border-emerald-500 shadow-sm border border-borderColor mobile-tap-card">
+                                        <p className="text-[10px] text-textMuted font-bold">{t("totalCollected")}</p>
+                                        <h3 className="text-lg font-black text-emerald-600 dark:text-emerald-400 mt-1 font-sans">
+                                            {financials.totalCollected.toLocaleString()} <span className="text-[10px] font-normal">{t("egp")}</span>
+                                        </h3>
+                                    </div>
+
+                                    <div className="bg-bgCard p-3.5 rounded-2xl border-r-4 border-rose-500 shadow-sm border border-borderColor mobile-tap-card">
+                                        <p className="text-[10px] text-textMuted font-bold">{t("totalWithdrawn")}</p>
+                                        <h3 className="text-lg font-black text-rose-600 dark:text-rose-400 mt-1 font-sans">
+                                            {financials.totalWithdrawn.toLocaleString()} <span className="text-[10px] font-normal">{t("egp")}</span>
+                                        </h3>
+                                    </div>
+
+                                    <div className="bg-bgCard p-3.5 rounded-2xl border-r-4 border-primary shadow-sm border border-borderColor col-span-2 mobile-tap-card flex justify-between items-center">
+                                        <div>
+                                            <p className="text-[10px] text-textMuted font-bold">{t("netTotal")}</p>
+                                            <h3 className="text-2xl font-black text-primary mt-1 font-sans">
+                                                {financials.net.toLocaleString()} <span className="text-xs font-normal">{t("egp")}</span>
+                                            </h3>
+                                        </div>
+                                        <div className="w-10 h-10 bg-primaryLight rounded-full flex items-center justify-center text-primary">
+                                            <i className="fa-solid fa-wallet text-sm"></i>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Active Project KPIs */}
+                                <div className="bg-bgCard p-4 rounded-2xl border border-borderColor shadow-sm space-y-3">
+                                    <h4 className="text-xs font-bold text-textMain flex items-center gap-2">
+                                        <i className="fa-solid fa-diagram-project text-primary"></i>
+                                        <span>{t("projects")} ({projects.length})</span>
+                                    </h4>
+                                    
+                                    <div className="grid grid-cols-3 gap-2 text-center text-[10px]">
+                                        <div className="bg-emerald-50 dark:bg-emerald-950/20 text-emerald-700 dark:text-emerald-400 p-2.5 rounded-xl font-bold">
+                                            <p>{t("completedProjects")}</p>
+                                            <p className="text-sm font-black mt-1 font-sans">{projects.filter(p => p.status === "Completed").length}</p>
+                                        </div>
+                                        <div className="bg-blue-50 dark:bg-blue-950/20 text-blue-700 dark:text-blue-400 p-2.5 rounded-xl font-bold">
+                                            <p>{t("inProgressProjects")}</p>
+                                            <p className="text-sm font-black mt-1 font-sans">{projects.filter(p => p.status === "In Progress").length}</p>
+                                        </div>
+                                        <div className="bg-amber-50 dark:bg-amber-950/20 text-amber-700 dark:text-amber-400 p-2.5 rounded-xl font-bold">
+                                            <p>{t("delayedProjects")}</p>
+                                            <p className="text-sm font-black mt-1 font-sans">{projects.filter(p => p.status === "Delayed" || p.status === "Cancelled").length}</p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {}
+                                <div className="bg-bgCard p-4 rounded-2xl border border-borderColor shadow-sm space-y-3">
+                                    <div className="flex justify-between items-center">
+                                        <h4 className="text-xs font-bold text-textMain flex items-center gap-2">
+                                            <i className="fa-solid fa-chart-line text-emerald-500 animate-pulse"></i>
+                                            <span>{t("incomeTrend")}</span>
+                                        </h4>
+                                        <span className="text-[10px] bg-primaryLight text-primary px-2 py-0.5 rounded-full font-bold">7D</span>
+                                    </div>
+                                    
+                                    <div className="w-full h-24 pt-2">
+                                        <svg viewBox="0 0 300 80" className="w-full h-full">
+                                            <defs>
+                                                <linearGradient id="mobileGrad" x1="0" y1="0" x2="0" y2="1">
+                                                    <stop offset="0%" stopColor="var(--primary)" stopOpacity="0.4" />
+                                                    <stop offset="100%" stopColor="var(--primary)" stopOpacity="0.0" />
+                                                </linearGradient>
+                                            </defs>
+                                            {/* Area Fill */}
+                                            <path d="M 0 60 Q 50 10 100 45 T 200 15 T 300 30 L 300 80 L 0 80 Z" fill="url(#mobileGrad)" />
+                                            {/* Dynamic Spline */}
+                                            <path d="M 0 60 Q 50 10 100 45 T 200 15 T 300 30" fill="none" stroke="var(--primary)" strokeWidth="3" strokeLinecap="round" />
+                                            {/* Pulse Node */}
+                                            <circle cx="200" cy="15" r="4" fill="var(--bg-card)" stroke="var(--primary)" strokeWidth="2" />
+                                            <circle cx="200" cy="15" r="8" fill="var(--primary)" className="animate-ping" style={{ opacity: 0.3 }} />
+                                        </svg>
+                                    </div>
+                                </div>
+
+                                {/* Outstanding Balances Tracker */}
+                                <div className="bg-bgCard p-4 rounded-2xl border border-borderColor shadow-sm space-y-3">
+                                    <div className="flex justify-between items-center border-b border-borderColor pb-2">
+                                        <h4 className="text-xs font-bold text-textMain flex items-center gap-2">
+                                            <i className="fa-solid fa-clock-rotate-left text-amber-500"></i>
+                                            <span>{t("outstandingBalances")}</span>
+                                        </h4>
+                                        <span className="text-xs font-bold text-rose-600 dark:text-rose-400 font-sans">
+                                            {financials.outstanding.toLocaleString()} {t("egp")}
+                                        </span>
+                                    </div>
+
+                                    <div className="space-y-2.5 max-h-[160px] overflow-y-auto">
+                                        {computedProjects.filter(p => p.remaining > 0).map(proj => {
+                                            const clientObj = clients.find(c => c.id === proj.clientId);
+                                            return (
+                                                <div key={proj.id} className="p-3 bg-bgMain rounded-xl text-xs flex justify-between items-center mobile-tap-card">
+                                                    <div>
+                                                        <h5 className="font-bold text-textMain truncate max-w-[150px]">{proj.name}</h5>
+                                                        <p className="text-[10px] text-textMuted mt-0.5">{clientObj?.name}</p>
+                                                    </div>
+                                                    <div className="text-left font-sans">
+                                                        <p className="font-extrabold text-rose-600 dark:text-rose-400">{proj.remaining.toLocaleString()} {t("egp")}</p>
+                                                        <button 
+                                                            onClick={() => setTransactionModal({ isOpen: true, data: { type: "Deposit", clientId: proj.clientId, projectId: proj.id, amount: proj.remaining } })}
+                                                            className="text-[10px] text-primary font-bold hover:underline"
+                                                        >
+                                                            {t("addPayment")}
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* MODULE 2: CLIENTS MODULE */}
+                        {currentModule === "clients" && (
+                            <div className="space-y-4 animate__animated animate__fadeIn animate__faster">
+                                <div className="flex items-center gap-2">
+                                    <div className="relative flex-1">
+                                        <input
+                                            type="text"
+                                            placeholder={t("search")}
+                                            value={globalSearch}
+                                            onChange={(e) => setGlobalSearch(e.target.value)}
+                                            className="w-full text-xs border border-borderColor bg-bgCard text-textMain rounded-xl pl-3 pr-9 py-2.5 focus:outline-none focus:ring-2 focus:ring-primary/20"
+                                        />
+                                        <span className="absolute right-3.5 top-3 text-textMuted text-xs"><i className="fa-solid fa-magnifying-glass"></i></span>
+                                    </div>
+                                    <button 
+                                        onClick={() => setClientModal({ isOpen: true, data: null, isDetail: false })}
+                                        className="w-10 h-10 bg-primary text-white rounded-xl flex items-center justify-center active:scale-95"
+                                    >
+                                        <i className="fa-solid fa-plus text-sm"></i>
+                                    </button>
+                                </div>
+
+                                <div className="space-y-3">
+                                    {clients
+                                        .filter(c => c.name.toLowerCase().includes(globalSearch.toLowerCase()))
+                                        .map(client => {
+                                            const clientProjs = computedProjects.filter(p => p.clientId === client.id);
+                                            const totalEarned = clientProjs.reduce((sum, p) => sum + p.paid, 0);
+
+                                            return (
+                                                <div 
+                                                    key={client.id} 
+                                                    className="bg-bgCard p-4 rounded-2xl border border-borderColor shadow-sm space-y-3 mobile-tap-card"
+                                                    onClick={() => setClientModal({ isOpen: true, data: client, isDetail: true })}
+                                                >
+                                                    <div className="flex justify-between items-start">
+                                                        <div>
+                                                            <h4 className="text-xs font-bold text-textMain">{client.name}</h4>
+                                                            <p className="text-[10px] text-textMuted font-sans mt-0.5">{client.mobile1}</p>
+                                                        </div>
+                                                        <span className="text-[10px] bg-primaryLight text-primary font-bold px-2 py-0.5 rounded-md">
+                                                            {clientProjs.length} {t("projects")}
+                                                        </span>
+                                                    </div>
+
+                                                    <div className="flex justify-between items-center text-[10px] pt-2 border-t border-borderColor">
+                                                        <div>
+                                                            <span className="text-textMuted block">{t("paid")}</span>
+                                                            <span className="font-extrabold text-emerald-600 dark:text-emerald-400 font-sans text-xs">{totalEarned.toLocaleString()} {t("egp")}</span>
+                                                        </div>
+
+                                                        <div className="flex gap-1.5">
+                                                            <button 
+                                                                onClick={(e) => {
+                                                                    e.stopPropagation();
+                                                                    setClientModal({ isOpen: true, data: client, isDetail: false });
+                                                                }}
+                                                                className="w-7 h-7 bg-blue-50 dark:bg-blue-950 text-blue-600 dark:text-blue-400 rounded-full flex items-center justify-center"
+                                                            >
+                                                                <i className="fa-solid fa-pen text-[10px]"></i>
+                                                            </button>
+                                                            <button 
+                                                                onClick={(e) => {
+                                                                    e.stopPropagation();
+                                                                    handleDeleteClient(client.id);
+                                                                }}
+                                                                className="w-7 h-7 bg-rose-50 dark:bg-rose-950 text-rose-600 dark:text-rose-400 rounded-full flex items-center justify-center"
+                                                            >
+                                                                <i className="fa-solid fa-trash text-[10px]"></i>
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            );
+                                        })}
+                                </div>
+                            </div>
+                        )}
+
+                        {/* MODULE 3: PROJECTS MODULE */}
+                        {currentModule === "projects" && (
+                            <div className="space-y-4 animate__animated animate__fadeIn animate__faster">
+                                <div className="flex items-center gap-2">
+                                    <div className="relative flex-1">
+                                        <input
+                                            type="text"
+                                            placeholder={t("search")}
+                                            value={globalSearch}
+                                            onChange={(e) => setGlobalSearch(e.target.value)}
+                                            className="w-full text-xs border border-borderColor bg-bgCard text-textMain rounded-xl pl-3 pr-9 py-2.5 focus:outline-none"
+                                        />
+                                        <span className="absolute right-3.5 top-3 text-textMuted text-xs"><i className="fa-solid fa-magnifying-glass"></i></span>
+                                    </div>
+                                    <button 
+                                        onClick={() => setProjectModal({ isOpen: true, data: null })}
+                                        className="w-10 h-10 bg-primary text-white rounded-xl flex items-center justify-center active:scale-95"
+                                    >
+                                        <i className="fa-solid fa-plus text-sm"></i>
+                                    </button>
+                                </div>
+
+                                <div className="space-y-3">
+                                    {computedProjects
+                                        .filter(p => p.name.toLowerCase().includes(globalSearch.toLowerCase()))
+                                        .map(proj => {
+                                            const clientObj = clients.find(c => c.id === proj.clientId);
+                                            let badgeClass = "bg-blue-100 text-blue-700 dark:bg-blue-950 dark:text-blue-400";
+                                            if (proj.status === "Completed") badgeClass = "bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-400";
+                                            if (proj.status === "Delayed") badgeClass = "bg-amber-100 text-amber-700 dark:bg-amber-950 dark:text-amber-400";
+
+                                            return (
+                                                <div key={proj.id} className="bg-bgCard p-4 rounded-2xl border border-borderColor shadow-sm space-y-3 mobile-tap-card">
+                                                    <div className="flex justify-between items-start">
+                                                        <div>
+                                                            <h4 className="text-xs font-bold text-textMain">{proj.name}</h4>
+                                                            <p className="text-[10px] text-textMuted mt-0.5">{clientObj?.name || "بدون عميل"}</p>
+                                                        </div>
+                                                        <span className={`text-[10px] font-bold px-2.5 py-0.5 rounded-full ${badgeClass}`}>
+                                                            {t(`status${proj.status.replace(" ", "")}`)}
+                                                        </span>
+                                                    </div>
+
+                                                    <div className="grid grid-cols-3 gap-1 bg-bgMain p-2 rounded-xl text-[9px] text-center">
+                                                        <div>
+                                                            <span className="text-textMuted block">{t("cost")}</span>
+                                                            <span className="font-extrabold text-textMain font-sans">{proj.cost.toLocaleString()}</span>
+                                                        </div>
+                                                        <div>
+                                                            <span className="text-textMuted block text-emerald-600">{t("paid")}</span>
+                                                            <span className="font-extrabold text-emerald-600 font-sans">{proj.paid.toLocaleString()}</span>
+                                                        </div>
+                                                        <div>
+                                                            <span className="text-textMuted block text-rose-500">{t("remaining")}</span>
+                                                            <span className="font-extrabold text-rose-500 font-sans">{proj.remaining.toLocaleString()}</span>
+                                                        </div>
+                                                    </div>
+
+                                                    <div className="flex justify-end gap-1.5 pt-1">
+                                                        <button 
+                                                            onClick={() => setProjectModal({ isOpen: true, data: proj })}
+                                                            className="px-3 py-1 bg-blue-50 dark:bg-blue-950 text-blue-600 dark:text-blue-400 rounded-lg text-[10px] font-bold"
+                                                        >
+                                                            {t("edit")}
+                                                        </button>
+                                                        <button 
+                                                            onClick={() => handleDeleteProject(proj.id)}
+                                                            className="px-3 py-1 bg-rose-50 dark:bg-rose-950 text-rose-600 dark:text-rose-400 rounded-lg text-[10px] font-bold"
+                                                        >
+                                                            {t("delete")}
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            );
+                                        })}
+                                </div>
+                            </div>
+                        )}
+
+                        {/* MODULE 4: CASHBOXES */}
+                        {currentModule === "cashboxes" && (
+                            <div className="space-y-4 animate__animated animate__fadeIn animate__faster">
+                                <div className="flex justify-between items-center">
+                                    <h3 className="text-xs font-bold text-textMuted uppercase">الحسابات والصناديق الحالية</h3>
+                                    <button 
+                                        onClick={() => setCashboxModal({ isOpen: true, data: null })}
+                                        className="text-xs text-primary font-bold hover:underline"
+                                    >
+                                        + إضافة حساب
+                                    </button>
+                                </div>
+
+                                <div className="grid grid-cols-1 gap-3">
+                                    {computedCashboxes.map(box => {
+                                        let icon = "fa-building-columns";
+                                        if (box.paymentMethod.includes("فودافون")) icon = "fa-mobile-screen";
+                                        if (box.paymentMethod.includes("نقدية") || box.paymentMethod.includes("كاش")) icon = "fa-wallet";
+                                        
+                                        return (
+                                            <div key={box.id} className="bg-bgCard p-4 rounded-2xl border border-borderColor shadow-sm flex items-center justify-between mobile-tap-card">
+                                                <div className="flex items-center gap-3">
+                                                    <div className="w-10 h-10 rounded-xl bg-primaryLight text-primary flex items-center justify-center">
+                                                        <i className={`fa-solid ${icon} text-sm`}></i>
+                                                    </div>
+                                                    <div>
+                                                        <h4 className="text-xs font-bold text-textMain">{box.paymentMethod}</h4>
+                                                        <p className="text-[9px] text-textMuted font-sans">ID: #{box.id}</p>
+                                                    </div>
+                                                </div>
+                                                <div className="text-left font-sans">
+                                                    <p className="text-sm font-black text-textMain">{box.currentBalance.toLocaleString()}</p>
+                                                    <p className="text-[9px] text-textMuted">{t("egp")}</p>
+                                                </div>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            </div>
+                        )}
+
+                        {/* MODULE 5: TRANSACTIONS */}
+                        {currentModule === "transactions" && (
+                            <div className="space-y-4 animate__animated animate__fadeIn animate__faster">
+                                <div className="flex items-center gap-2">
+                                    <div className="relative flex-1">
+                                        <input
+                                            type="text"
+                                            placeholder="رقم الحركة أو الملاحظة..."
+                                            value={globalSearch}
+                                            onChange={(e) => setGlobalSearch(e.target.value)}
+                                            className="w-full text-xs border border-borderColor bg-bgCard text-textMain rounded-xl pl-3 pr-9 py-2.5 focus:outline-none"
+                                        />
+                                        <span className="absolute right-3.5 top-3 text-textMuted text-xs"><i className="fa-solid fa-magnifying-glass"></i></span>
+                                    </div>
+                                    <button 
+                                        onClick={() => setTransactionModal({ isOpen: true, data: null })}
+                                        className="w-10 h-10 bg-primary text-white rounded-xl flex items-center justify-center active:scale-95"
+                                    >
+                                        <i className="fa-solid fa-plus text-sm"></i>
+                                    </button>
+                                </div>
+
+                                <div className="space-y-3">
+                                    {transactions
+                                        .filter(t => t.notes.toLowerCase().includes(globalSearch.toLowerCase()))
+                                        .map(txn => {
+                                            const boxObj = cashboxes.find(b => b.id === txn.cashboxId);
+                                            const clientObj = clients.find(c => c.id === txn.clientId);
+                                            
+                                            let badgeColor = "text-emerald-600 bg-emerald-50 dark:bg-emerald-950/20";
+                                            let sign = "+";
+                                            if (txn.type === "Withdraw") {
+                                                badgeColor = "text-rose-600 bg-rose-50 dark:bg-rose-950/20";
+                                                sign = "-";
+                                            } else if (txn.type === "Transfer") {
+                                                badgeColor = "text-amber-600 bg-amber-50 dark:bg-amber-950/20";
+                                                sign = "⇄";
+                                            }
+
+                                            return (
+                                                <div key={txn.id} className="bg-bgCard p-4 rounded-2xl border border-borderColor shadow-sm space-y-2 mobile-tap-card">
+                                                    <div className="flex justify-between items-start">
+                                                        <div>
+                                                            <span className={`text-[8px] font-bold px-1.5 py-0.5 rounded ${badgeColor}`}>
+                                                                {t(txn.type.toLowerCase())}
+                                                            </span>
+                                                            <p className="text-[10px] text-textMuted font-sans mt-1">ID: #{txn.id}</p>
+                                                        </div>
+                                                        <p className="text-xs font-black font-sans text-textMain">
+                                                            {sign} {txn.amount.toLocaleString()} {t("egp")}
+                                                        </p>
+                                                    </div>
+
+                                                    <p className="text-xs text-textMain leading-relaxed font-medium">{txn.notes}</p>
+
+                                                    <div className="flex justify-between items-center text-[9px] text-textMuted pt-2 border-t border-borderColor/50">
+                                                        <span>🏦 {boxObj?.paymentMethod}</span>
+                                                        <span>👤 {clientObj?.name || "-"}</span>
+                                                    </div>
+                                                </div>
+                                            );
+                                        })}
+                                </div>
+                            </div>
+                        )}
+
+                        {/* MODULE 6: FINANCIAL REPORTS */}
+                        {currentModule === "reports" && (
+                            <div className="space-y-4 animate__animated animate__fadeIn animate__faster">
+                                <div className="bg-bgCard p-4 rounded-2xl border border-borderColor shadow-sm space-y-3 text-center">
+                                    <div className="w-12 h-12 rounded-full bg-primaryLight text-primary flex items-center justify-center mx-auto text-lg">
+                                        <i className="fa-solid fa-file-invoice-dollar"></i>
+                                    </div>
+                                    <div>
+                                        <h4 className="text-xs font-bold text-textMain">تصدير التقارير المالية المتكاملة</h4>
+                                        <p className="text-[10px] text-textMuted mt-1">حسابات العملاء، مستحقات المشاريع، وحركات الصناديق بصيغة جاهزة للمشاركة والطباعة.</p>
+                                    </div>
+                                    <button 
+                                        onClick={() => showToast("جاري تجهيز التقرير للمشاركة...")}
+                                        className="w-full py-2.5 bg-primary hover:bg-primaryHover text-white text-xs font-bold rounded-xl shadow-md active:scale-95 transition-all"
+                                    >
+                                        <i className="fa-solid fa-share-nodes mr-1 ml-1"></i> مشاركة التقرير المالي
+                                    </button>
+                                </div>
+
+                                <div className="bg-bgCard p-4 rounded-2xl border border-borderColor shadow-sm space-y-3">
+                                    <h4 className="text-xs font-bold text-textMain border-b border-borderColor pb-2">ملخص الهيكل المالي الحالي</h4>
+                                    
+                                    <div className="space-y-2 text-xs">
+                                        <div className="flex justify-between py-1">
+                                            <span className="text-textMuted">إجمالي المقبوضات:</span>
+                                            <span className="font-bold font-sans text-emerald-600">{financials.totalCollected.toLocaleString()} ج.م</span>
+                                        </div>
+                                        <div className="flex justify-between py-1">
+                                            <span className="text-textMuted">إجمالي المصروفات:</span>
+                                            <span className="font-bold font-sans text-rose-500">{financials.totalWithdrawn.toLocaleString()} ج.م</span>
+                                        </div>
+                                        <div className="flex justify-between py-1">
+                                            <span className="text-textMuted">صافي الرصيد الحالي:</span>
+                                            <span className="font-bold font-sans text-primary">{financials.net.toLocaleString()} ج.م</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* MODULE 7: SYSTEM SETTINGS & THEME CUSTOMIZER */}
+                        {currentModule === "settings" && (
+                            <div className="bg-bgCard rounded-2xl border border-borderColor p-4 shadow-sm space-y-5 animate__animated animate__fadeIn animate__faster">
+                                <h3 className="text-xs font-bold text-textMain border-b border-borderColor pb-2">⚙️ {t("settings")}</h3>
+
+                                <div className="space-y-4 text-xs">
+                                    <div className="flex flex-col gap-1.5">
+                                        <label className="font-bold text-textMain">{t("companyName")}</label>
+                                        <input
+                                            type="text"
+                                            value={settings.companyName}
+                                            onChange={(e) => setSettings({ ...settings, companyName: e.target.value })}
+                                            className="border border-borderColor rounded-xl p-2.5 bg-bgMain text-textMain focus:outline-none"
+                                        />
+                                    </div>
+
+                                    <div className="flex flex-col gap-1.5">
+                                        <label className="font-bold text-textMain">{t("footerText")}</label>
+                                        <input
+                                            type="text"
+                                            maxLength="100"
+                                            value={settings.footerText}
+                                            onChange={(e) => setSettings({ ...settings, footerText: e.target.value })}
+                                            className="border border-borderColor rounded-xl p-2.5 bg-bgMain text-textMain focus:outline-none"
+                                        />
+                                    </div>
+
+                                    <div className="flex flex-col gap-1.5">
+                                        <label className="font-bold text-textMain">{t("themePreset")}</label>
+                                        <select
+                                            value={settings.themePreset}
+                                            onChange={(e) => setSettings({ ...settings, themePreset: e.target.value })}
+                                            className="border border-borderColor rounded-xl p-2.5 bg-bgMain text-textMain focus:outline-none font-bold"
+                                        >
+                                            <option value="oceanBlue">🔵 {t("oceanBlue")}</option>
+                                            <option value="forestGreen">🟢 {t("forestGreen")}</option>
+                                            <option value="sunsetOrange">🟠 {t("sunsetOrange")}</option>
+                                            <option value="royalIndigo">🟣 {t("royalIndigo")}</option>
+                                            <option value="crimsonRose">🔴 {t("crimsonRose")}</option>
+                                            <option value="midnightGold">🟡 {t("midnightGold")}</option>
+                                            <option value="customTheme">🎨 {t("customTheme")}</option>
+                                        </select>
+                                    </div>
+
+                                    {settings.themePreset === "customTheme" && (
+                                        <div className="flex flex-col gap-1.5 bg-bgMain/50 p-3 rounded-xl border border-borderColor animate__animated animate__fadeIn">
+                                            <label className="font-bold text-textMain">{t("customColor")}</label>
+                                            <div className="flex items-center gap-3">
+                                                <input
+                                                    type="color"
+                                                    value={settings.customColor}
+                                                    onChange={(e) => setSettings({ ...settings, customColor: e.target.value })}
+                                                    className="w-12 h-10 border rounded-xl cursor-pointer"
+                                                />
+                                                <span className="font-mono text-textMain font-semibold">{settings.customColor}</span>
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    <button 
+                                        onClick={() => showToast(t("saveSuccess"))}
+                                        className="w-full py-2.5 bg-primary text-white font-bold rounded-xl"
+                                    >
+                                        {t("save")}
+                                    </button>
+                                </div>
+                            </div>
+                        )}
+
+                    </div>
+
+                    {}
+                    <div className="relative z-40">
+                        {quickActionMenu && (
+                            <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-40" onClick={() => setQuickActionMenu(false)}>
+                                <div className="absolute bottom-24 left-1/2 -translate-x-1/2 flex flex-col items-center gap-3 w-4/5 animate__animated animate__bounceIn">
+                                    <button 
+                                        onClick={() => { setQuickActionMenu(false); setTransactionModal({ isOpen: true, data: null }); }}
+                                        className="w-full py-3 bg-emerald-500 text-white rounded-2xl font-bold text-xs shadow-lg flex items-center justify-center gap-2"
+                                    >
+                                        <i className="fa-solid fa-receipt"></i>
+                                        <span>إيداع / سحب مالي سريع</span>
+                                    </button>
+                                    <button 
+                                        onClick={() => { setQuickActionMenu(false); setClientModal({ isOpen: true, data: null, isDetail: false }); }}
+                                        className="w-full py-3 bg-primary text-white rounded-2xl font-bold text-xs shadow-lg flex items-center justify-center gap-2"
+                                    >
+                                        <i className="fa-solid fa-user-plus"></i>
+                                        <span>إضافة عميل جديد</span>
+                                    </button>
+                                    <button 
+                                        onClick={() => { setQuickActionMenu(false); setProjectModal({ isOpen: true, data: null }); }}
+                                        className="w-full py-3 bg-amber-500 text-white rounded-2xl font-bold text-xs shadow-lg flex items-center justify-center gap-2"
+                                    >
+                                        <i className="fa-solid fa-folder-plus"></i>
+                                        <span>إضافة مشروع جديد</span>
+                                    </button>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Centered Floating Action Button */}
+                        <div className="absolute bottom-20 left-1/2 -translate-x-1/2 z-50">
+                            <button 
+                                onClick={() => setQuickActionMenu(!quickActionMenu)}
+                                className="w-14 h-14 bg-primary text-white rounded-full flex items-center justify-center shadow-xl active:scale-90 transform hover:scale-105 transition-all outline-none ring-4 ring-white dark:ring-slate-900"
+                            >
+                                <i className={`fa-solid ${quickActionMenu ? "fa-xmark" : "fa-plus"} text-xl transition-all duration-200`}></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    {}
+                    <nav className="glass-nav border-t border-borderColor fixed bottom-0 left-0 right-0 z-35 flex justify-between px-3 pt-2 pb-safe shadow-lg text-center">
+                        {[
+                            { id: "dashboard", icon: "fa-chart-pie", label: t("dashboard") },
+                            { id: "clients", icon: "fa-users", label: t("clients") },
+                            { id: "spacer", spacer: true }, // Placeholder for middle FAB
+                            { id: "projects", icon: "fa-briefcase", label: t("projects") },
+                            { id: "transactions", icon: "fa-exchange-alt", label: t("transactions") }
+                        ].map((item, index) => {
+                            if (item.spacer) return <div key={index} className="w-14"></div>;
+                            const isActive = currentModule === item.id;
+                            return (
+                                <button
+                                    key={item.id}
+                                    onClick={() => setCurrentModule(item.id)}
+                                    className={`flex-1 flex flex-col items-center justify-center py-1 transition-all active:scale-95 ${
+                                        isActive ? "text-primary font-bold scale-105" : "text-textMuted"
+                                    }`}
+                                >
+                                    <i className={`fa-solid ${item.icon} text-lg mb-1`}></i>
+                                    <span className="text-[9px] tracking-tight">{item.label}</span>
+                                </button>
+                            );
+                        })}
+                    </nav>
+
+                    {}
+                    {clientModal.isOpen && (
+                        <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-end justify-center">
+                            <div className="bg-bgCard w-full rounded-t-[2.5rem] border-t border-borderColor max-h-[90%] overflow-y-auto p-6 animate__animated animate__slideInUp animate__faster">
+                                <div className="flex justify-between items-center border-b border-borderColor pb-3">
+                                    <h3 className="font-extrabold text-sm text-textMain">
+                                        {clientModal.isDetail ? t("clientDetail") : clientModal.data ? t("edit") : t("add")}
+                                    </h3>
+                                    <button onClick={() => setClientModal({ isOpen: false, data: null, isDetail: false })} className="text-textMuted text-lg">✕</button>
+                                </div>
+
+                                {clientModal.isDetail ? (
+                                    <div className="py-4 space-y-4 text-xs text-textMain">
+                                        <div className="p-3 bg-bgMain rounded-2xl space-y-2">
+                                            <p className="font-bold text-sm text-primary">{clientModal.data.name}</p>
+                                            <p>📱 {clientModal.data.mobile1}</p>
+                                            {clientModal.data.email && <p>📧 {clientModal.data.email}</p>}
+                                            {clientModal.data.address && <p>📍 {clientModal.data.address}</p>}
+                                        </div>
+                                        <div className="flex justify-end gap-2 pt-3">
+                                            <button 
+                                                onClick={() => setClientModal({ isOpen: false, data: null, isDetail: false })}
+                                                className="w-full py-2.5 bg-primary text-white font-bold rounded-xl"
+                                            >
+                                                موافق
+                                            </button>
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <form onSubmit={(e) => {
+                                        e.preventDefault();
+                                        const fd = new FormData(e.target);
+                                        const cData = {
+                                            id: clientModal.data ? clientModal.data.id : Date.now(),
+                                            name: fd.get("name"),
+                                            mobile1: fd.get("mobile1"),
+                                            email: fd.get("email"),
+                                            address: fd.get("address"),
+                                        };
+                                        if (clientModal.data) handleUpdateClient(clientModal.data.id, cData);
+                                        else handleAddClient(cData);
+                                        setClientModal({ isOpen: false, data: null, isDetail: false });
+                                    }} className="py-4 space-y-3 text-xs">
+                                        <input type="text" name="name" placeholder={t("clientName")} defaultValue={clientModal.data?.name} className="w-full border border-borderColor bg-bgMain text-textMain p-3 rounded-xl focus:outline-none" required />
+                                        <input type="text" name="mobile1" placeholder={t("mobile1")} defaultValue={clientModal.data?.mobile1} className="w-full border border-borderColor bg-bgMain text-textMain p-3 rounded-xl focus:outline-none" required />
+                                        <input type="email" name="email" placeholder={t("email")} defaultValue={clientModal.data?.email} className="w-full border border-borderColor bg-bgMain text-textMain p-3 rounded-xl focus:outline-none" />
+                                        <input type="text" name="address" placeholder={t("address")} defaultValue={clientModal.data?.address} className="w-full border border-borderColor bg-bgMain text-textMain p-3 rounded-xl focus:outline-none" />
+                                        
+                                        <div className="flex gap-2 pt-4">
+                                            <button type="submit" className="flex-1 py-3 bg-primary text-white font-bold rounded-xl">{t("save")}</button>
+                                            <button type="button" onClick={() => setClientModal({ isOpen: false, data: null })} className="flex-1 py-3 bg-bgMain text-textMuted font-bold rounded-xl">{t("cancel")}</button>
+                                        </div>
+                                    </form>
+                                )}
+                            </div>
+                        </div>
+                    )}
+
+                    {}
+                    {projectModal.isOpen && (
+                        <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-end justify-center">
+                            <div className="bg-bgCard w-full rounded-t-[2.5rem] border-t border-borderColor max-h-[90%] overflow-y-auto p-6 animate__animated animate__slideInUp animate__faster">
+                                <div className="flex justify-between items-center border-b border-borderColor pb-3">
+                                    <h3 className="font-extrabold text-sm text-textMain">{projectModal.data ? t("edit") : t("add")}</h3>
+                                    <button onClick={() => setProjectModal({ isOpen: false, data: null })} className="text-textMuted text-lg">✕</button>
+                                </div>
+
+                                <form onSubmit={(e) => {
+                                    e.preventDefault();
+                                    const fd = new FormData(e.target);
+                                    const pData = {
+                                        id: projectModal.data ? projectModal.data.id : Date.now(),
+                                        name: fd.get("name"),
+                                        category: fd.get("category"),
+                                        clientId: parseInt(fd.get("clientId")),
+                                        status: fd.get("status"),
+                                        cost: parseFloat(fd.get("cost")),
+                                        details: fd.get("details"),
+                                    };
+                                    if (projectModal.data) handleUpdateProject(projectModal.data.id, pData);
+                                    else handleAddProject(pData);
+                                    setProjectModal({ isOpen: false, data: null });
+                                }} className="py-4 space-y-3 text-xs">
+                                    <input type="text" name="name" placeholder={t("projectName")} defaultValue={projectModal.data?.name} className="w-full border border-borderColor bg-bgMain p-3 rounded-xl text-textMain" required />
+                                    <input type="text" name="category" placeholder={t("category")} defaultValue={projectModal.data?.category} className="w-full border border-borderColor bg-bgMain p-3 rounded-xl text-textMain" required />
+                                    
+                                    <select name="clientId" defaultValue={projectModal.data?.clientId} className="w-full border border-borderColor bg-bgMain p-3 rounded-xl text-textMain" required>
+                                        <option value="">اختر العميل</option>
+                                        {clients.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                                    </select>
+
+                                    <select name="status" defaultValue={projectModal.data?.status || "In Progress"} className="w-full border border-borderColor bg-bgMain p-3 rounded-xl text-textMain">
+                                        <option value="Completed">{t("statusCompleted")}</option>
+                                        <option value="In Progress">{t("statusInProgress")}</option>
+                                        <option value="Delayed">{t("statusDelayed")}</option>
+                                        <option value="Cancelled">{t("statusCancelled")}</option>
+                                    </select>
+
+                                    <input type="number" name="cost" placeholder="التكلفة ج.م" defaultValue={projectModal.data?.cost} className="w-full border border-borderColor bg-bgMain p-3 rounded-xl text-textMain font-sans" required />
+                                    <textarea name="details" placeholder="تفاصيل المشروع..." defaultValue={projectModal.data?.details} rows="3" className="w-full border border-borderColor bg-bgMain p-3 rounded-xl text-textMain"></textarea>
+
+                                    <div className="flex gap-2 pt-4">
+                                        <button type="submit" className="flex-1 py-3 bg-primary text-white font-bold rounded-xl">{t("save")}</button>
+                                        <button type="button" onClick={() => setProjectModal({ isOpen: false, data: null })} className="flex-1 py-3 bg-bgMain text-textMuted font-bold rounded-xl">{t("cancel")}</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    )}
+
+                    {}
+                    {cashboxModal.isOpen && (
+                        <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-end justify-center">
+                            <div className="bg-bgCard w-full rounded-t-[2.5rem] border-t border-borderColor p-6 animate__animated animate__slideInUp animate__faster">
+                                <div className="flex justify-between items-center border-b border-borderColor pb-3">
+                                    <h3 className="font-extrabold text-sm text-textMain">{t("add")}</h3>
+                                    <button onClick={() => setCashboxModal({ isOpen: false, data: null })} className="text-textMuted text-lg">✕</button>
+                                </div>
+
+                                <form onSubmit={(e) => {
+                                    e.preventDefault();
+                                    const fd = new FormData(e.target);
+                                    const newBox = {
+                                        id: Date.now(),
+                                        paymentMethod: fd.get("paymentMethod"),
+                                        baseBalance: parseFloat(fd.get("baseBalance") || 0),
+                                        createdAt: new Date().toISOString().split("T")[0]
+                                    };
+                                    setCashboxes([...cashboxes, newBox]);
+                                    setCashboxModal({ isOpen: false, data: null });
+                                    showToast(t("saveSuccess"));
+                                }} className="py-4 space-y-3 text-xs">
+                                    <input type="text" name="paymentMethod" placeholder="اسم وسيلة الدفع (مثال: محفظة اتصالات كاش)" className="w-full border border-borderColor bg-bgMain p-3 rounded-xl text-textMain" required />
+                                    <input type="number" name="baseBalance" placeholder="الرصيد الافتتاحي ج.م" className="w-full border border-borderColor bg-bgMain p-3 rounded-xl text-textMain font-sans" required />
+
+                                    <div className="flex gap-2 pt-4">
+                                        <button type="submit" className="flex-1 py-3 bg-primary text-white font-bold rounded-xl">{t("save")}</button>
+                                        <button type="button" onClick={() => setCashboxModal({ isOpen: false, data: null })} className="flex-1 py-3 bg-bgMain text-textMuted font-bold rounded-xl">{t("cancel")}</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    )}
+
+                    {}
+                    {transactionModal.isOpen && (
+                        <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-end justify-center">
+                            <div className="bg-bgCard w-full rounded-t-[2.5rem] border-t border-borderColor max-h-[90%] overflow-y-auto p-6 animate__animated animate__slideInUp animate__faster">
+                                <div className="flex justify-between items-center border-b border-borderColor pb-3">
+                                    <h3 className="font-extrabold text-sm text-textMain">{t("add")}</h3>
+                                    <button onClick={() => setTransactionModal({ isOpen: false, data: null })} className="text-textMuted text-lg">✕</button>
+                                </div>
+
+                                <form onSubmit={(e) => {
+                                    e.preventDefault();
+                                    const fd = new FormData(e.target);
+                                    const newTx = {
+                                        id: Date.now(),
+                                        type: fd.get("type"),
+                                        amount: parseFloat(fd.get("amount")),
+                                        cashboxId: parseInt(fd.get("cashboxId")),
+                                        notes: fd.get("notes"),
+                                        clientId: fd.get("clientId") ? parseInt(fd.get("clientId")) : null,
+                                        projectId: fd.get("projectId") ? parseInt(fd.get("projectId")) : null,
+                                        toCashboxId: fd.get("toCashboxId") ? parseInt(fd.get("toCashboxId")) : null,
+                                        createdAt: new Date().toISOString().split("T")[0]
+                                    };
+                                    handleAddTransaction(newTx);
+                                    setTransactionModal({ isOpen: false, data: null });
+                                }} className="py-4 space-y-3 text-xs">
+                                    
+                                    <select name="type" defaultValue={transactionModal.data?.type || "Deposit"} className="w-full border border-borderColor bg-bgMain p-3 rounded-xl text-textMain font-bold">
+                                        <option value="Deposit">{t("deposit")}</option>
+                                        <option value="Withdraw">{t("withdraw")}</option>
+                                        <option value="Transfer">{t("transfer")}</option>
+                                    </select>
+
+                                    <input type="number" name="amount" placeholder="المبلغ ج.م" defaultValue={transactionModal.data?.amount} className="w-full border border-borderColor bg-bgMain p-3 rounded-xl text-textMain font-sans" required />
+                                    
+                                    <select name="cashboxId" className="w-full border border-borderColor bg-bgMain p-3 rounded-xl text-textMain" required>
+                                        <option value="">اختر حساب الصندوق</option>
+                                        {cashboxes.map(b => <option key={b.id} value={b.id}>{b.paymentMethod}</option>)}
+                                    </select>
+
+                                    <select name="clientId" className="w-full border border-borderColor bg-bgMain p-3 rounded-xl text-textMain">
+                                        <option value="">العميل المرتبط (اختياري)</option>
+                                        {clients.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                                    </select>
+
+                                    <select name="projectId" className="w-full border border-borderColor bg-bgMain p-3 rounded-xl text-textMain">
+                                        <option value="">المشروع المرتبط (اختياري)</option>
+                                        {projects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+                                    </select>
+
+                                    <input type="text" name="notes" placeholder="ملاحظات وتفاصيل الحركة..." className="w-full border border-borderColor bg-bgMain p-3 rounded-xl text-textMain" required />
+
+                                    <div className="flex gap-2 pt-4">
+                                        <button type="submit" className="flex-1 py-3 bg-primary text-white font-bold rounded-xl">{t("save")}</button>
+                                        <button type="button" onClick={() => setTransactionModal({ isOpen: false, data: null })} className="flex-1 py-3 bg-bgMain text-textMuted font-bold rounded-xl">{t("cancel")}</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    )}
+
+                </div>
+            );
+        }
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
